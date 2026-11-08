@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Usta Kassa</title>
+<meta name="theme-color" content="#3F2718">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  color-scheme:dark;
+  --bgg:linear-gradient(180deg,#45291A 0%,#2B1A10 40%,#1B100A 100%);
+  --bg:#2B1A10; --card:#3A2618; --card2:#4B3222; --text:#FFF5EE; --hint:#C4AA97; --line:rgba(255,230,210,.10);
+  --fill:rgba(255,236,222,.08); --accent:#F47B3C; --accent2:#FF9A5C; --accent-soft:rgba(244,123,60,.18);
+  --green:#5BD69A; --green-soft:rgba(91,214,154,.14); --blue:#86B6FF; --blue-soft:rgba(134,182,255,.14);
+  --red:#FF8273; --red-soft:rgba(255,130,115,.14); --violet:#D3A6FF; --violet-soft:rgba(211,166,255,.14);
+  --amber:#FFC15E; --amber-soft:rgba(255,193,94,.14); --teal:#62D9D2; --teal-soft:rgba(98,217,210,.14);
+  --nav:#130A05; --shadow:0 10px 30px rgba(0,0,0,.28);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,Roboto,sans-serif;
+}
+:root[data-theme=light]{
+  color-scheme:light;
+  --bgg:linear-gradient(180deg,#F7F3F0,#EEE8E3); --bg:#F3EFEB; --card:#FFFFFF; --card2:#F4EFEB; --text:#1C130E; --hint:#857669;
+  --line:rgba(40,20,10,.08); --fill:#F2EDE9; --accent-soft:rgba(244,123,60,.12); --accent2:#CF5418;
+  --green:#1C8F58; --green-soft:rgba(28,143,88,.1); --blue:#2766D6; --blue-soft:rgba(39,102,214,.09);
+  --red:#D63E30; --red-soft:rgba(214,62,48,.08); --violet:#7E46CC; --violet-soft:rgba(126,70,204,.09);
+  --amber:#B87800; --amber-soft:rgba(184,120,0,.1); --teal:#0F837E; --teal-soft:rgba(15,131,126,.1);
+  --nav:#17100B; --shadow:0 6px 20px rgba(60,30,10,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--text);font-family:var(--font);font-size:16px;line-height:1.35;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+input,select,textarea{font:inherit;color:var(--text)}
+#app{padding:4px 16px 120px}
+#device{max-width:480px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg) var(--bgg)}
+.fade{animation:fade .2s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---- Asosiy konteyner ---- */
+@media (min-width:520px){ body{background:#120A05!important} :root[data-theme=light] body{background:#DDD3CA!important} #device{box-shadow:0 0 60px rgba(0,0,0,.35)} }
+body{background:var(--bg) var(--bgg) fixed;min-height:100vh}
+#mb{position:fixed;left:50%;transform:translateX(-50%);width:100%;max-width:480px;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:none;z-index:25;background:linear-gradient(180deg,transparent,var(--bg) 35%)}
+#mb.show{display:block}
+#mb button{display:block;width:100%;max-width:448px;margin:0 auto;height:56px;border-radius:28px;background:var(--accent);color:#fff;font-weight:700;font-size:17px;box-shadow:0 10px 24px rgba(244,123,60,.35);transition:transform .2s}
+#mb button:active{transform:scale(.98)}
+.tg #mb{display:none!important}
+#navSlot{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:20;pointer-events:none}
+#ovl{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:40}
+#ovl:empty{display:none}
+
+/* ---- Sarlavhalar ---- */
+.hdr{display:flex;align-items:center;gap:10px;margin:8px 0 16px;min-height:48px}
+.hdr .grow{flex:1;min-width:0}
+.hdr small{display:block;color:var(--hint);font-size:13px}
+.hdr b{display:block;font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top{display:flex;align-items:center;gap:10px;margin:8px 0 18px;min-height:44px}
+.top .grow{flex:1;min-width:0;text-align:center}
+.top h1{margin:0;font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sub{color:var(--hint);font-size:13px}
+.top .rgt{display:flex;gap:6px;min-width:44px;justify-content:flex-end}
+.ib{width:44px;height:44px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--text);flex:none;position:relative}
+.ib.acc{background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(244,123,60,.35)}
+.ib .rd{position:absolute;top:10px;right:11px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--card)}
+.backfb{display:none!important}
+h2.sec{font-size:18px;font-weight:700;margin:24px 2px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+h2.sec small{font-size:13px;color:var(--hint);font-weight:500}
+h2.sec button{color:var(--accent2);font-size:14px;font-weight:600}
+
+/* ---- Hero karta ---- */
+.hero{position:relative;overflow:hidden;border-radius:26px;padding:20px;color:#fff;background:linear-gradient(135deg,#F7894A 0%,#E2632A 45%,#9A4116 100%);box-shadow:0 14px 30px rgba(196,82,28,.25);min-height:140px}
+.hero>*{position:relative;z-index:1}
+.hero::after{content:"";position:absolute;right:-34px;bottom:-46px;width:210px;height:210px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round'%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Cpath d='M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12'/%3E%3C/svg%3E") no-repeat center/contain;opacity:.2;transform:rotate(-18deg);z-index:0}
+.hero.ph{background:linear-gradient(90deg,rgba(20,10,5,.9),rgba(20,10,5,.5) 62%,rgba(20,10,5,.2)),var(--ph) center/cover;box-shadow:var(--shadow)}
+.hero.ph::after,.hero.ph .glow{display:none}
+.hero .glow{position:absolute;left:-60px;top:-90px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%);z-index:0}
+.hero .lbl{font-size:14px;color:rgba(255,255,255,.85)}
+.hero .big{font-size:34px;font-weight:750;letter-spacing:-.5px;margin:4px 0 12px;line-height:1.1}
+.hero .row2{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;background:rgba(255,255,255,.18);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pill i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.hero .nav2{position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:2}
+.hero .nav2 button{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;display:grid;place-items:center}
+.hero .cta{margin-top:16px;height:46px;padding:0 20px 0 14px;border-radius:23px;background:#fff;color:#B84A18;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.hero.ph .cta{background:var(--accent);color:#fff}
+
+/* ---- Hafta tasmasi, tezkor tugmalar, kassa ---- */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:0 0 14px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 6px;border-radius:30px;background:var(--fill);border:1px solid var(--line);transition:background .2s}
+.wd span{font-size:12px;color:var(--hint)}
+.wd b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--card2);font-weight:650;font-size:15px}
+.wd.on{background:var(--accent);border-color:var(--accent)}
+.wd.on span{color:#fff}
+.wd.on b{background:#fff;color:#C2521E;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.wd.fut{opacity:.45}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.qa button{position:relative;height:76px;border-radius:20px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:12.5px;font-weight:600}
+.qa button svg{width:22px;height:22px;color:var(--accent2)}
+.qa button.on{background:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(244,123,60,.3)}
+.qa button.on svg{color:#fff}
+.qa .dot,.pnav .dot{position:absolute;top:5px;right:7px;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px;font-style:normal}
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kt{background:var(--card);border-radius:20px;padding:12px;display:flex;align-items:center;gap:11px;text-align:left;min-height:66px;width:100%}
+.ki{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;flex:none}
+.ki svg{width:20px;height:20px}
+.kt>span:last-child{min-width:0}
+.kt .kl{font-size:12.5px;color:var(--hint);display:block}
+.kt .kv{font-size:17px;font-weight:700;white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- Pastki suzuvchi menyu ---- */
+.pnav{pointer-events:auto;display:flex;gap:6px;padding:7px;border-radius:40px;background:var(--nav);box-shadow:0 14px 34px rgba(0,0,0,.38)}
+.pnav button{height:48px;min-width:48px;border-radius:24px;background:rgba(255,255,255,.08);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;transition:background .2s}
+.pnav button.on{background:#fff;color:#D2581C;padding:0 16px 0 6px;font-weight:650;font-size:14px}
+.pnav .ni{width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
+.pnav .ni svg{width:21px;height:21px}
+.pnav button.on .ni{background:var(--accent);color:#fff}
+.pnav .dot{top:-4px;right:-3px;border:2px solid var(--nav)}
+
+/* ---- Kartalar va ro'yxatlar ---- */
+.card{background:var(--card);border-radius:20px;padding:14px 16px}
+.card.p0{padding:2px 16px}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:20px;padding:12px 14px;width:100%;text-align:left;min-height:64px}
+.item .mid{flex:1;min-width:0}
+.item .t1{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t2{font-size:13.5px;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .rt{text-align:right;flex:0 0 auto;max-width:46%}
+.item .rt b{display:block;white-space:nowrap;font-weight:700}
+.lrow{display:flex;align-items:center;gap:14px;padding:0 16px;min-height:62px;width:100%;text-align:left;background:var(--card);border-radius:20px}
+.lrow .sq{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;flex:none}
+.lrow .sq svg{width:19px;height:19px}
+.lrow .lt{flex:1;min-width:0;font-weight:600}
+.lrow .lv{color:var(--hint);white-space:nowrap}
+.lrow .chev{color:var(--hint);display:grid}
+.lrow .chev svg{width:16px;height:16px}
+.badge{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:11px;background:var(--accent);color:#fff;font-size:13px;font-weight:700;padding:0 7px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:center}
+.row:last-child{border-bottom:0}
+.row .k{color:var(--hint)}
+.row .v{font-weight:650;text-align:right;white-space:nowrap}
+.row.tot .k,.row.tot .v{color:var(--text);font-size:17px;font-weight:750}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.tile{background:var(--card);border-radius:18px;padding:11px 12px;text-align:left;min-height:64px;display:flex;flex-direction:column;justify-content:space-between}
+.tile .l{font-size:12.5px;color:var(--hint)}
+.tile .n{font-size:18px;font-weight:700}
+
+.av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#F7894A,#B84A18);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none;background-size:cover;background-position:center}
+.av.me{width:48px;height:48px;border:2px solid rgba(255,255,255,.14)}
+.av.t{border-radius:14px;font-size:14px;flex-direction:column;line-height:1.1;width:52px;background:var(--accent-soft);color:var(--accent2);font-weight:700}
+.tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tag{font-size:11.5px;font-weight:650;border-radius:7px;padding:2px 7px;background:var(--fill);color:var(--hint);white-space:nowrap}
+.tag.cash{background:var(--green-soft);color:var(--green)}
+.tag.card{background:var(--blue-soft);color:var(--blue)}
+.tag.debt{background:var(--red-soft);color:var(--red)}
+.tag.disc{background:var(--violet-soft);color:var(--violet)}
+.tag.acc{background:var(--accent-soft);color:var(--accent2)}
+
+.btn{min-height:44px;border-radius:22px;padding:0 18px;font-weight:650;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:transform .2s,opacity .2s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn.acc{background:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(244,123,60,.28)}
+.btn.soft{background:var(--accent-soft);color:var(--accent2)}
+.btn.gray{background:var(--fill);color:var(--text)}
+.btn.card{background:var(--card);color:var(--text)}
+.btn.red{background:var(--red-soft);color:var(--red)}
+.btn.green{background:var(--green-soft);color:var(--green)}
+.btn.blue{background:var(--blue-soft);color:var(--blue)}
+.btn.sm{min-height:38px;font-size:14px;padding:0 14px;border-radius:19px}
+.btn.block{width:100%}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns>.btn{flex:1}
+.savebar,.fab{display:none!important}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
+.chips.scroll::-webkit-scrollbar{display:none}
+.chip{min-height:38px;border-radius:19px;padding:0 15px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:14px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:background .2s,color .2s}
+.card .chip{background:var(--fill)}
+.chip.on,.card .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip small{font-weight:500;opacity:.75}
+.srch{display:flex;gap:10px;align-items:center}
+.sbox{flex:1;display:flex;align-items:center;gap:8px;height:50px;border-radius:25px;background:var(--card);padding:0 16px;color:var(--hint)}
+.sbox input{flex:1;border:0;background:transparent;outline:none;font-size:15px;height:100%;min-width:0}
+
+.field{display:block;margin-top:12px}
+.field:first-child{margin-top:0}
+.field>span{display:block;font-size:13px;color:var(--hint);margin:0 0 6px 4px}
+.inp{width:100%;height:50px;border-radius:16px;border:1px solid var(--line);background:var(--fill);padding:0 16px;outline:none;font-size:16px;transition:border-color .2s}
+textarea.inp{height:auto;min-height:88px;padding:12px 16px;resize:vertical}
+.inp:focus{border-color:var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{font-size:13px;color:var(--hint);margin:8px 4px 0}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--fill);border-radius:22px;padding:4px}
+.seg button{min-height:38px;border-radius:19px;font-weight:600;font-size:14px;color:var(--hint);transition:background .2s,color .2s}
+.seg button.on{background:var(--accent);color:#fff}
+.irow{display:grid;grid-template-columns:1fr 112px 40px;gap:8px;align-items:center;margin-top:8px}
+.irow .inp{height:46px}
+.picked{display:flex;align-items:center;gap:12px}
+.res{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.res button{display:flex;align-items:center;gap:10px;padding:6px 12px 6px 6px;border-radius:24px;background:var(--fill);text-align:left;min-height:46px}
+.res .av{width:34px;height:34px;font-size:13px}
+.res svg{color:var(--accent2)}
+.phrow{display:flex;gap:12px;align-items:center}
+.phrow .grow{flex:1;min-width:0}
+.phprev{width:68px;height:50px;border-radius:14px;background:linear-gradient(135deg,#F7894A,#9A4116);background-size:cover;background-position:center;display:grid;place-items:center;color:#fff;flex:none}
+
+.banner{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:20px;padding:14px 16px;margin-top:10px;width:100%;text-align:left}
+.banner>svg:first-child{color:var(--accent2);flex:none}
+.banner .grow{flex:1;min-width:0}
+.banner b{display:block;font-weight:650}
+.banner span{font-size:13px;color:var(--hint)}
+.banner>svg:last-child{color:var(--hint)}
+.empty{text-align:center;padding:30px 18px;background:var(--card);border-radius:22px}
+.empty .ei{width:60px;height:60px;border-radius:50%;background:var(--accent-soft);color:var(--accent2);display:grid;place-items:center;margin:0 auto 12px}
+.empty b{display:block;font-size:16px;margin-bottom:4px}
+.empty p{margin:0;color:var(--hint);font-size:14px}
+.empty .btn{margin-top:14px}
+
+.chart{display:flex;align-items:flex-end;gap:2px;height:120px;padding-top:6px}
+.chart div{flex:1;background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:4px 4px 0 0;min-height:2px}
+.chart div.z{background:var(--fill)}
+.chart-x{display:flex;justify-content:space-between;font-size:11px;color:var(--hint);margin-top:6px}
+.hbar{margin:10px 0}
+.hbar .hl{display:flex;justify-content:space-between;font-size:14.5px;margin-bottom:6px}
+.hbar .hl b{font-weight:650}
+.hbar .tr{height:8px;background:var(--fill);border-radius:99px;overflow:hidden}
+.hbar .tr i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.delta{font-size:12px;font-weight:650;border-radius:6px;padding:2px 6px}
+.delta.up{background:var(--green-soft);color:var(--green)}
+.delta.dn{background:var(--red-soft);color:var(--red)}
+.prof{display:flex;align-items:center;gap:14px}
+.prof .av{width:64px;height:64px;font-size:23px}
+.prof h3{margin:0;font-size:20px}
+.prof .sub{color:var(--hint);font-size:14px}
+.stat4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.stat4 div{background:var(--fill);border-radius:14px;padding:10px 12px}
+.stat4 small{display:block;color:var(--hint);font-size:12px}
+.stat4 b{font-size:15.5px}
+
+/* ---- Kirish (welcome) va PIN ---- */
+.wel{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 22px 40px;color:#fff;overflow:hidden;background:radial-gradient(120% 75% at 75% 22%,#C45A21 0%,#5E3016 46%,#1A0F08 100%)}
+.wel.ph{background:linear-gradient(180deg,rgba(14,7,3,.15) 0%,rgba(14,7,3,.5) 42%,rgba(14,7,3,.96) 100%),var(--ph) center/cover}
+.wel-art{position:absolute;top:40px;right:-60px;width:290px;height:290px;color:rgba(255,255,255,.13);transform:rotate(-16deg)}
+.wel.ph .wel-art{display:none}
+.bars{position:absolute;top:calc(18px + env(safe-area-inset-top));left:22px;right:22px;display:flex;gap:8px}
+.bars i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.25)}
+.bars i.on{background:#fff}
+.wel h1{font-size:29px;line-height:1.15;font-weight:750;margin:0 0 10px;letter-spacing:.2px;text-transform:uppercase}
+.wel p{color:rgba(255,255,255,.74);font-size:15px;margin:0 0 14px}
+.wel .field>span{color:rgba(255,255,255,.7)}
+.wel .inp{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16);color:#fff}
+.wel .inp::placeholder{color:rgba(255,255,255,.45)}
+.slide{margin-top:18px;height:66px;border-radius:33px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);display:flex;align-items:center;padding:6px;gap:12px;color:#fff;width:100%;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.slide .sc{width:54px;height:54px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none;box-shadow:0 6px 16px rgba(244,123,60,.45)}
+.slide b{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:-30px}
+.slide .ar{opacity:.75;padding-right:18px;font-size:18px;letter-spacing:-3px}
+.wel .lnk{display:block;margin:10px auto 0;color:rgba(255,255,255,.78);font-size:14px;text-decoration:underline;min-height:40px}
+.wel.lockv{justify-content:center;align-items:center;gap:18px;padding-bottom:20px}
+.wel.lockv .ei{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#fff}
+.dots{display:flex;gap:16px}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.6)}
+.dots i.f{background:var(--accent);border-color:var(--accent)}
+.pad{display:grid;grid-template-columns:repeat(3,74px);gap:16px 22px}
+.pad button{height:74px;border-radius:50%;background:rgba(255,255,255,.1);font-size:28px;font-weight:500;color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+
+.toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-16px);background:rgba(20,12,6,.92);color:#fff;padding:12px 18px;border-radius:16px;font-size:14px;opacity:0;transition:.2s;z-index:60;pointer-events:none;max-width:86%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.muted{color:var(--hint)}
+.pos{color:var(--green)!important} .neg{color:var(--red)!important}
+@media print{#navSlot,#mb,.noprint{display:none!important} body{background:#fff;padding:0;display:block}}
+</style>
+</head>
+<body>
+<div id="device">
+  <div id="scroller"><div id="app"></div></div>
+  <div id="mb"><button type="button" id="mbBtn"></button></div>
+  <div id="navSlot"></div>
+  <div id="ovl"></div>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+<script>
+/* =========================================================
+   USTA KASSA — sartarosh uchun kassa, mijozlar bazasi va hisobot
+   Barcha ma'lumotlar shu telefonda (localStorage) saqlanadi.
+   ========================================================= */
+
+/* ---------- Telegram ---------- */
+const tg = window.Telegram && window.Telegram.WebApp;
+const IN_TG = !!(tg && tg.initData);
+document.documentElement.classList.add(IN_TG ? "tg" : "nontg");
+if (IN_TG) { tg.ready(); tg.expand(); try { tg.enableClosingConfirmation(); tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch(e){} try { tg.BackButton.onClick(() => goBack()); } catch(e){} }
+function haptic(k){ try { if (!IN_TG) return; if (k==="success"||k==="error"||k==="warning") tg.HapticFeedback.notificationOccurred(k); else tg.HapticFeedback.impactOccurred("light"); } catch(e){} }
+
+/* ---------- Yordamchilar ---------- */
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseYmd = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y,m-1,d); };
+const addDays = (s,n) => { const d = parseYmd(s); d.setDate(d.getDate()+n); return ymd(d); };
+const today = () => ymd(new Date());
+const nowHM = () => { const d = new Date(); return pad(d.getHours())+":"+pad(d.getMinutes()); };
+const daysBetween = (a,b) => Math.round((parseYmd(b)-parseYmd(a))/864e5);
+const addMonths = (ym,n) => { const [y,m] = ym.split("-").map(Number); const d = new Date(y,m-1+n,1); return `${d.getFullYear()}-${pad(d.getMonth()+1)}`; };
+const daysInMonth = ym => { const [y,m] = ym.split("-").map(Number); return new Date(y,m,0).getDate(); };
+const num = v => Math.max(0, Math.round(+String(v ?? "").replace(/[^\d.]/g,"") || 0));
+const fmt = n => String(Math.round(+n||0)).replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const money = n => fmt(n) + " so'm";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const initials = n => (n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase() || "?";
+const phoneLink = p => String(p||"").replace(/[^\d+]/g,"");
+const WD = ["Yakshanba","Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba"];
+const WDS = ["Ya","Du","Se","Ch","Pa","Ju","Sh"];
+const MON = ["yanvar","fevral","mart","aprel","may","iyun","iyul","avgust","sentabr","oktabr","noyabr","dekabr"];
+const cap = s => s.charAt(0).toUpperCase()+s.slice(1);
+const dLabel = s => { const d = parseYmd(s); return `${d.getDate()}-${MON[d.getMonth()]}`; };
+const dLong = s => { const d = parseYmd(s); return `${WD[d.getDay()]}, ${d.getDate()}-${MON[d.getMonth()]}`; };
+const mLabel = ym => { const [y,m] = ym.split("-").map(Number); return `${cap(MON[m-1])} ${y}`; };
+const ago = s => { const n = daysBetween(s, today()); return n===0 ? "bugun" : n===1 ? "kecha" : n < 0 ? `${-n} kundan keyin` : `${n} kun oldin`; };
+const tpl = (s, v) => String(s).replace(/\{(\w+)\}/g, (m,k) => v[k] ?? m);
+function toast(m){ const t = document.getElementById("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(()=>t.classList.remove("show"), 2300); }
+function ask(m){ return new Promise(r => { if (IN_TG && tg.showConfirm) { try { tg.showConfirm(m, ok => r(!!ok)); return; } catch(e){} } r(window.confirm(m)); }); }
+function copyText(t, msg){
+  const ok = () => { haptic("success"); toast(msg || "Nusxalandi"); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(ok).catch(() => legacy());
+  else legacy();
+  function legacy(){ const a = document.createElement("textarea"); a.value = t; a.style.cssText="position:fixed;opacity:0"; document.body.appendChild(a); a.select(); try { document.execCommand("copy"); ok(); } catch(e){ toast("Nusxalab bo'lmadi"); } a.remove(); }
+}
+function openLink(url){ if (IN_TG) { try { url.startsWith("https://t.me/") ? tg.openTelegramLink(url) : tg.openLink(url); return; } catch(e){} } window.open(url, "_blank"); }
+function download(name, text, type){
+  try { const b = new Blob([text], {type}); const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href), 3000); toast("Fayl tayyorlandi"); }
+  catch(e){ copyText(text, "Yuklab bo'lmadi — matn nusxalandi"); }
+}
+const hashPin = p => { let h = 5381; for (const c of "usta:"+p) h = ((h<<5)+h+c.charCodeAt(0))|0; return String(h>>>0); };
+
+/* ---------- Ma'lumotlar bazasi ---------- */
+const DB_KEY = "usta_kassa_v1";
+const DEFAULT_SETTINGS = {
+  shop: "Sartaroshxona", master: "",
+  services: [
+    { id:"s1", name:"Soch olish", price:50000 },
+    { id:"s2", name:"Soqol olish", price:30000 },
+    { id:"s3", name:"Soch + soqol", price:70000 },
+    { id:"s4", name:"Bolalar sochi", price:35000 },
+    { id:"s5", name:"Soch bo'yash", price:80000 }
+  ],
+  interval: 21,
+  categories: ["Ijara","Kommunal","Materiallar","Ovqat","Maosh","Boshqa"],
+  tVisit: "Assalomu alaykum, {ism}! Oxirgi tashrifingizga {kun} kun bo'ldi. {sartaroshxona}da sizni kutamiz — qulay vaqtni yozib qo'yaylikmi? 💈",
+  tAppt: "Assalomu alaykum, {ism}! Eslatma: {sana} kuni soat {vaqt} da {sartaroshxona}da navbatingiz bor. Kutib qolamiz!",
+  tDebt: "Assalomu alaykum, {ism}! {sartaroshxona}dagi {qarz} qarzingizni eslatib qo'ymoqchi edim. Rahmat!",
+  pin: "", theme: "dark", onboarded: false, photo: "", mphoto: ""
+};
+function loadDB(){
+  let d; try { d = JSON.parse(localStorage.getItem(DB_KEY)); } catch(e){}
+  d = d || {};
+  return { settings: Object.assign({}, DEFAULT_SETTINGS, d.settings||{}), clients: d.clients||[], visits: d.visits||[], payments: d.payments||[], expenses: d.expenses||[], appts: d.appts||[], updatedAt: d.updatedAt||0 };
+}
+let DB = loadDB();
+function saveLocal(){ try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e){ toast("Xotira to'ldi — zaxira nusxa oling"); } }
+function persist(){ DB.updatedAt = Date.now(); saveLocal(); scheduleSync(); }
+
+/* ---------- Google Sheets sinxronlash ---------- */
+// Har bir o'zgarish Google Sheets'ga yuboriladi; ilova ochilganda eng yangi nusxa olinadi.
+const SYNC_KEY = "usta_sync_v1";
+let SYNC = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; } catch(e){ return {}; } })();
+const saveSync = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(SYNC)); } catch(e){} };
+const syncOn = () => !!(SYNC.url && SYNC.key);
+let syncTimer = null, syncBusy = false;
+const COLLS = ["clients","visits","payments","expenses","appts"];
+function syncPayload(){ const st = Object.assign({}, DB.settings); delete st.photo; delete st.mphoto; delete st.pin;
+  const o = { settings: st }; COLLS.forEach(k => o[k] = DB[k]); return o; }
+async function callSheet(body, url, key){
+  const r = await fetch(url || SYNC.url, { method:"POST", body: JSON.stringify(Object.assign({ key: key || SYNC.key }, body)) });
+  return await r.json();
+}
+function scheduleSync(){ if (!syncOn()) return; SYNC.pending = true; saveSync(); clearTimeout(syncTimer); syncTimer = setTimeout(pushSync, 1500); }
+async function pushSync(force){
+  if (!syncOn() || syncBusy) return;
+  if (!navigator.onLine) { SYNC.pending = true; saveSync(); refreshSyncUi(); return; }
+  syncBusy = true; let j = null;
+  try { j = await callSheet({ action:"push", updatedAt: DB.updatedAt || Date.now(), db: syncPayload(), force: !!force }); }
+  catch(e){ SYNC.error = "Internet yoki havola xatosi"; }
+  syncBusy = false;
+  if (j && j.ok) { SYNC.pending = false; SYNC.last = Date.now(); SYNC.error = ""; }
+  else if (j && j.error === "stale") { saveSync(); return pullSync(true); }   // boshqa telefonda yangiroq — birlashtiramiz
+  else if (j) SYNC.error = j.error || "Xato";
+  saveSync(); refreshSyncUi();
+}
+const keepLocal = () => ({ photo: DB.settings.photo, mphoto: DB.settings.mphoto, pin: DB.settings.pin, theme: DB.settings.theme });
+async function pullSync(quiet){
+  if (!syncOn() || !navigator.onLine || syncBusy) return;
+  let j; try { j = await callSheet({ action:"pull" }); } catch(e){ SYNC.error = "Internet yoki havola xatosi"; saveSync(); refreshSyncUi(); return; }
+  if (!j.ok) { SYNC.error = j.error || "Xato"; saveSync(); refreshSyncUi(); return; }
+  const rAt = j.updatedAt || 0;
+  if (j.db && rAt > (DB.updatedAt || 0)) {
+    if (SYNC.pending) {
+      // Ikkala tomonda ham o'zgarish bor: yozuvlarni birlashtirib, qayta yuboramiz
+      COLLS.forEach(k => { const m = new Map(); (j.db[k]||[]).forEach(x => m.set(x.id, x)); (DB[k]||[]).forEach(x => m.set(x.id, x)); DB[k] = [...m.values()]; });
+      DB.settings = Object.assign({}, DEFAULT_SETTINGS, j.db.settings || {}, DB.settings);
+      DB.updatedAt = Date.now(); saveLocal(); render(); await pushSync(true); return;
+    }
+    DB = Object.assign({ settings: Object.assign({}, DEFAULT_SETTINGS, j.db.settings || {}, keepLocal()) }, ...COLLS.map(k => ({ [k]: j.db[k] || [] })), { updatedAt: rAt });
+    saveLocal(); SYNC.last = Date.now(); SYNC.error = ""; saveSync();
+    if (!quiet) toast("Google Sheets'dan yangilandi");
+    applyTheme(); render();
+  } else if (SYNC.pending || (DB.updatedAt || 0) > rAt) { await pushSync(); return; }
+  else { SYNC.last = Date.now(); SYNC.error = ""; saveSync(); }
+  refreshSyncUi();
+}
+async function connectSync(url, key){
+  url = String(url||"").trim(); key = String(key||"").trim();
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(url)) { haptic("error"); toast("Havola …/exec bilan tugashi kerak"); return false; }
+  if (!key) { haptic("error"); toast("Kalitni kiriting"); return false; }
+  toast("Tekshirilmoqda...");
+  let j; try { j = await callSheet({ action:"ping" }, url, key); } catch(e){ haptic("error"); toast("Ulanib bo'lmadi. Havola va ruxsatni (Anyone) tekshiring"); return false; }
+  if (!j.ok) { haptic("error"); toast(j.error || "Xato"); return false; }
+  SYNC = { url, key, pending: true }; saveSync(); cloudSave();
+  haptic("success"); toast(`Ulandi: ${j.name || "Google Sheets"}`);
+  await pullSync(true); return true;
+}
+function cloudSave(){ if (IN_TG && tg.CloudStorage) { try { tg.CloudStorage.setItem("usta_sync", syncOn() ? JSON.stringify({ url: SYNC.url, key: SYNC.key }) : ""); } catch(e){} } }
+function cloudLoad(cb){ if (!(IN_TG && tg.CloudStorage)) return cb(null);
+  try { tg.CloudStorage.getItem("usta_sync", (err, v) => { try { cb(!err && v ? JSON.parse(v) : null); } catch(e){ cb(null); } }); } catch(e){ cb(null); } }
+function syncStatusHtml(){
+  if (!syncOn()) return `<span class="muted">Ulanmagan</span>`;
+  if (SYNC.error) return `<span class="neg">⚠ ${esc(SYNC.error)}</span>`;
+  if (SYNC.pending) return `<span class="muted">Yuborilmoqda…</span>`;
+  return `<span class="pos">✓ Saqlangan${SYNC.last ? " · " + new Date(SYNC.last).toTimeString().slice(0,5) : ""}</span>`;
+}
+function refreshSyncUi(){ const el = document.getElementById("syncStatus"); if (el) el.innerHTML = syncStatusHtml(); }
+window.addEventListener("online", () => { if (syncOn()) pullSync(true); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && syncOn()) pullSync(true); });
+const ST = () => DB.settings;
+const clientById = id => DB.clients.find(c => c.id === id);
+
+/* ---------- Hisob-kitob ---------- */
+// Tanlangan davr (sana filtri) bo'yicha jami ko'rsatkichlar
+function totals(test){
+  const V = DB.visits.filter(v => test(v.date)), P = DB.payments.filter(p => test(p.date)), E = DB.expenses.filter(e => test(e.date));
+  const t = { visits:V.length, sales:0, discount:0, cash:0, card:0, debtGiven:0, debtBack:0, expense:0, V, P, E };
+  V.forEach(v => { t.sales += v.total; t.discount += v.discount; t.cash += v.cash; t.card += v.card; t.debtGiven += v.debt; });
+  P.forEach(p => { t.debtBack += p.amount; p.method === "card" ? t.card += p.amount : t.cash += p.amount; });
+  E.forEach(e => t.expense += e.amount);
+  t.income = t.cash + t.card;
+  t.net = t.income - t.expense;
+  return t;
+}
+function clientDebt(id){
+  let d = 0; DB.visits.forEach(v => { if (v.clientId === id) d += v.debt; }); DB.payments.forEach(p => { if (p.clientId === id) d -= p.amount; });
+  return Math.max(0, d);
+}
+function clientStats(id){
+  const vs = DB.visits.filter(v => v.clientId === id).sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  const dates = [...new Set(vs.map(v => v.date))];
+  const gaps = dates.slice(1).map((d,i) => daysBetween(dates[i], d)).filter(g => g > 0);
+  const avg = gaps.length ? Math.round(gaps.reduce((a,b)=>a+b,0)/gaps.length) : null;
+  const interval = avg || ST().interval;
+  const last = dates[dates.length-1] || null;
+  const next = last ? addDays(last, interval) : null;
+  const spent = vs.reduce((s,v) => s+v.total, 0);
+  const appt = DB.appts.filter(a => a.clientId === id && a.date >= today()).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time))[0] || null;
+  return { vs, count: vs.length, spent, avgCheck: vs.length ? Math.round(spent/vs.length) : 0, avg, interval, last, next, appt, debt: clientDebt(id),
+           since: last ? daysBetween(last, today()) : null, due: !!(next && next <= addDays(today(),1)) };
+}
+// Eslatma kerak bo'lgan mijozlar: kelish vaqti keldi, navbati yo'q, oxirgi 7 kunda eslatilmagan
+function dueClients(){
+  return DB.clients.map(c => ({ c, s: clientStats(c.id) }))
+    .filter(x => x.s.due && !x.s.appt && (!x.c.remindedAt || daysBetween(x.c.remindedAt, today()) >= 7))
+    .sort((a,b) => a.s.next.localeCompare(b.s.next));
+}
+const apptsOn = d => DB.appts.filter(a => a.date === d).sort((a,b)=>a.time.localeCompare(b.time));
+const tomorrowApptsToRemind = () => apptsOn(addDays(today(),1)).filter(a => !a.reminded);
+const remindCount = () => dueClients().length + tomorrowApptsToRemind().length;
+
+/* ---------- Holat ---------- */
+const S = { screen:"home", stack:[], day:today(), month:today().slice(0,7), expMonth:today().slice(0,7),
+            cSearch:"", cFilter:"all", clientId:null, F:null, E:null, A:null, C:null, P:null, draft:null,
+            unlocked: !DB.settings.pin, pinBuf:"" };
+const TABS = ["home","clients","debts","report","more"];
+function go(s){ S.stack.push(S.screen); S.screen = s; render(true); }
+function tab(s){ S.stack = []; S.screen = s; if (s === "settings") S.draft = null; render(true); }
+function goBack(){ haptic(); S.screen = S.stack.pop() || "home"; render(true); }
+
+/* ---------- Ikonkalar ---------- */
+const ic = (p, s=20) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const I = {
+  home: ic('<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',22),
+  users: ic('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',22),
+  wallet: ic('<path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1.5"/>',22),
+  chart: ic('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>',22),
+  grid: ic('<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',22),
+  plus: ic('<path d="M12 5v14M5 12h14"/>',22),
+  left: ic('<path d="M15 18l-6-6 6-6"/>'), right: ic('<path d="M9 18l6-6-6-6"/>'),
+  trash: ic('<path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>',18),
+  edit: ic('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',18),
+  phone: ic('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>',18),
+  sms: ic('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',18),
+  send: ic('<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>',18),
+  copy: ic('<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',18),
+  bell: ic('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',22),
+  cal: ic('<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/>',22),
+  receipt: ic('<path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2-3 2z"/><path d="M8 8h8M8 12h8M8 16h5"/>',22),
+  gear: ic('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',22),
+  scissors: ic('<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>',22),
+  check: ic('<path d="M5 12l5 5L20 7"/>',18),
+  lock: ic('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',26),
+  x: ic('<path d="M18 6 6 18M6 6l12 12"/>',18),
+  down: ic('<path d="M12 3v12M7 10l5 5 5-5M5 21h14"/>',18),
+  cash: ic('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/>'),
+  cardI: ic('<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>'),
+  tagI: ic('<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'),
+  undo: ic('<path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/>'),
+  search: ic('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>')
+};
+const ART_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>';
+function ktile(c, icon, label, value, attrs){
+  const t = attrs ? "button" : "div";
+  return `<${t} class="kt" ${attrs||""}><span class="ki" style="color:var(--${c});background:var(--${c}-soft)">${icon}</span><span><span class="kl">${label}</span><span class="kv">${value}</span></span></${t}>`;
+}
+const meAvatar = cls => { const ph = ST().mphoto; return `<div class="av me ${cls||""}" ${ph ? `style="background-image:url(${ph})"` : ""}>${ph ? "" : esc(initials(ST().master || ST().shop))}</div>`; };
+function readPhoto(file, max, cb){
+  const r = new FileReader();
+  r.onload = () => { const img = new Image();
+    img.onload = () => { const k = Math.min(1, max/Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width*k); c.height = Math.round(img.height*k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); cb(c.toDataURL("image/jpeg", .82)); };
+    img.onerror = () => toast("Rasmni o'qib bo'lmadi"); img.src = r.result; };
+  r.readAsDataURL(file);
+}
+function applyTheme(){
+  const t = ST().theme === "light" ? "light" : "dark"; document.documentElement.dataset.theme = t;
+  const c = t === "light" ? "#F7F3F0" : "#45291A", m = document.querySelector('meta[name=theme-color]'); if (m) m.content = c;
+  if (IN_TG) { try { tg.setHeaderColor(c); tg.setBackgroundColor(t === "light" ? "#EEE8E3" : "#1B100A"); } catch(e){} }
+}
+function lrow(color, icon, label, value, attrs, bold){
+  const t = attrs ? "button" : "div";
+  return `<${t} class="lrow" ${attrs||""}><span class="sq" style="background:${color}">${icon}</span><span class="lt">${label}</span><span class="lv ${bold?"b":""}">${value}</span>${attrs ? `<span class="chev">${I.right}</span>` : ""}</${t}>`;
+}
+function avBg(n){
+  const g = [["#FF885E","#FF516A"],["#FFCD6A","#FFA85C"],["#82B1FF","#665FFF"],["#A0DE7E","#54CB68"],["#53EDD6","#28C9B7"],["#72D5FD","#2A9EF1"],["#E0A2F3","#D669ED"]];
+  let h = 0; for (const c of String(n||"")) h = (h*31 + c.charCodeAt(0))|0;
+  const [a,b] = g[Math.abs(h) % 7]; return `background:linear-gradient(${a},${b});color:#fff`;
+}
+
+/* ---------- Umumiy bloklar ---------- */
+function topBar(title, sub, right){
+  if (TABS.includes(S.screen)) {
+    return `<div class="hdr">${meAvatar()}<div class="grow"><small>${esc(sub||"")}</small><b>${esc(title)}</b></div>${right||""}
+      ${S.screen === "home" ? `<button class="ib" data-a="tabTo" data-v="reminders" aria-label="Eslatmalar">${I.bell}${remindCount() ? '<i class="rd"></i>' : ""}</button>` : ""}
+      <button class="ib acc" data-a="newVisit" aria-label="Mijoz keldi">${I.plus}</button></div>`;
+  }
+  return `<div class="top"><button class="ib" data-a="back" aria-label="Orqaga">${I.left}</button>
+    <div class="grow"><h1>${esc(title)}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ""}</div><div class="rgt">${right || '<span style="width:44px"></span>'}</div></div>`;
+}
+const empty = (t, p, btn, icon) => `<div class="empty fade"><div class="ei">${icon||I.users}</div><b>${esc(t)}</b><p>${esc(p)}</p>${btn||""}</div>`;
+function payTags(v){
+  const t = [];
+  if (v.cash) t.push(`<span class="tag cash">Naqd</span>`);
+  if (v.card) t.push(`<span class="tag card">Karta</span>`);
+  if (v.debt) t.push(`<span class="tag debt">Nasiya ${fmt(v.debt)}</span>`);
+  if (v.discount) t.push(`<span class="tag disc">−${fmt(v.discount)}</span>`);
+  return t.join("");
+}
+function tabbar(){
+  if (!TABS.includes(S.screen)) return "";
+  const debtors = DB.clients.filter(c => clientDebt(c.id) > 0).length, rc = remindCount();
+  const items = [["home","Bugun",I.home],["clients","Mijozlar",I.users],["debts","Qarzlar",I.wallet,debtors],["report","Hisobot",I.chart],["more","Yana",I.grid,rc]];
+  return `<nav class="pnav noprint" aria-label="Menyu">${items.map(([id,l,i,b]) => { const on = S.screen === id;
+    return `<button data-a="tab" data-v="${id}" class="${on?"on":""}" aria-label="${l}"><span class="ni">${i}</span>${on ? `<span>${l}</span>` : ""}${b && !on ? `<span class="dot">${b}</span>` : ""}</button>`; }).join("")}</nav>`;
+}
+function savebar(label, action, sumHtml){
+  return `<div class="savebar"><div class="in"><div class="sum" id="sbSum">${sumHtml||""}</div><button class="btn acc" data-a="${action}">${label}</button></div></div>`;
+}
+
+/* ================= BUGUN ================= */
+function vHome(){
+  const d = S.day, T = totals(x => x === d), isToday = d === today();
+  const list = T.V.slice().sort((a,b)=>b.time.localeCompare(a.time));
+  const appts = apptsOn(d).filter(a => !a.done);
+  const rc = remindCount(), dim = daysInMonth(today().slice(0,7)), dom = new Date().getDate();
+  const strip = Array.from({length:7}, (_,i) => addDays(d, i-3));
+  const ph = ST().photo;
+  let banners = "";
+  if (syncOn() && SYNC.error) banners += `<button class="banner" data-a="tabTo" data-v="settings">${I.x}<div class="grow"><b>Google Sheets bilan aloqa yo'q</b><span>${esc(SYNC.error)} — ma'lumotlar telefonda saqlanmoqda</span></div>${I.right}</button>`;
+  if (isToday && (dom >= dim-1 || dom === 1)) banners += `<button class="banner" data-a="openReport" data-v="${dom===1 ? addMonths(today().slice(0,7),-1) : today().slice(0,7)}">${I.chart}<div class="grow"><b>${dom===1 ? "O'tgan oy hisoboti tayyor" : "Oy tugayapti"}</b><span>Oylik hisobotni ko'ring va saqlab qo'ying</span></div>${I.right}</button>`;
+  return `${topBar(ST().master || ST().shop, isToday ? "Xush kelibsiz 👋" : dLong(d))}
+  <div class="week">${strip.map(x => { const dt = parseYmd(x);
+    return `<button class="wd ${x===d?"on":""} ${x>today()?"fut":""}" data-a="pickDay" data-v="${x}" aria-label="${dLong(x)}"><span>${x===today() ? "Bugun" : WDS[dt.getDay()]}</span><b>${dt.getDate()}</b></button>`; }).join("")}</div>
+  <section class="hero ${ph ? "ph" : ""}" ${ph ? `style="--ph:url(${ph})"` : ""}>
+    <div class="glow"></div>
+    <div class="nav2 noprint"><button data-a="dayShift" data-v="-1" aria-label="Oldingi kun">${I.left}</button><button data-a="dayShift" data-v="1" aria-label="Keyingi kun">${I.right}</button></div>
+    <div class="lbl">${isToday ? "Bugungi tushum" : dLong(d)}</div>
+    <div class="big">${money(T.income)}</div>
+    <div class="row2"><span class="pill">${T.visits} ta mijoz</span><span class="pill">Sof foyda ${fmt(T.net)}</span></div>
+    <button class="cta noprint" data-a="newVisit">${I.scissors} Mijoz keldi</button>
+  </section>
+  <div class="qa noprint">
+    <button class="on" data-a="newAppt">${I.cal}<span>Navbat</span></button>
+    <button data-a="addExpense">${I.receipt}<span>Xarajat</span></button>
+    <button data-a="tabTo" data-v="reminders">${I.bell}<span>Eslatma</span>${rc ? `<i class="dot">${rc}</i>` : ""}</button>
+    <button data-a="tab" data-v="report">${I.chart}<span>Hisobot</span></button>
+  </div>
+  <h2 class="sec">Kassa <small>${isToday ? "bugun" : dLabel(d)}</small></h2>
+  <div class="kgrid">
+    ${ktile("green", I.cash, "Naqd", fmt(T.cash))}
+    ${ktile("blue", I.cardI, "Karta", fmt(T.card))}
+    ${ktile("red", I.wallet, "Nasiya", fmt(T.debtGiven), 'data-a="tab" data-v="debts"')}
+    ${ktile("violet", I.tagI, "Chegirma", fmt(T.discount))}
+    ${ktile("teal", I.undo, "Qarz qaytdi", fmt(T.debtBack))}
+    ${ktile("amber", I.receipt, "Xarajat", fmt(T.expense), 'data-a="tabTo" data-v="expenses"')}
+  </div>
+  ${banners}
+  ${appts.length ? `<h2 class="sec">Navbatdagilar <small>${appts.length} ta</small></h2><div class="list">${appts.map(a => { const c = clientById(a.clientId);
+    return `<div class="item"><div class="av t">${a.time}</div><div class="mid"><div class="t1">${esc(c ? c.name : "Mijoz")}</div><div class="t2">${esc(a.note || (c && c.phone) || "")}</div></div>
+      <button class="btn green sm" data-a="apptCame" data-v="${a.id}">Keldi</button></div>`; }).join("")}</div>` : ""}
+  <h2 class="sec">${isToday ? "Bugun kelganlar" : "Kelganlar"} <small>${list.length} ta</small></h2>
+  ${list.length ? `<div class="list">${list.map(v => { const c = clientById(v.clientId), nm = c ? c.name : (v.name || "Mijoz");
+    return `<div class="item fade"><div class="av" style="${avBg(nm)}">${esc(initials(nm))}</div>
+      <button class="mid" style="text-align:left" ${c ? `data-a="openClient" data-v="${c.id}"` : ""}><div class="t1">${esc(nm)}</div><div class="t2">${v.time} · ${esc(v.items.map(i=>i.name).join(", "))}</div><div class="tags">${payTags(v)}</div></button>
+      <div class="rt"><b>${fmt(v.total)}</b></div>
+      <button class="ib noprint" style="width:36px;height:36px;background:var(--fill)" data-a="delVisit" data-v="${v.id}" aria-label="O'chirish">${I.trash}</button></div>`; }).join("")}</div>`
+  : empty(isToday ? "Hali hech kim kelmadi" : "Bu kunda yozuv yo'q", "Mijoz kelganda \"Mijoz keldi\" tugmasini bosing.", "", I.scissors)}
+  ${T.E.length ? `<h2 class="sec">Xarajatlar <small>${money(T.expense)}</small></h2><div class="card p0">${T.E.map(e => `<div class="row"><span class="k">${esc(e.category)}${e.note ? " · "+esc(e.note) : ""}</span><span class="v">${fmt(e.amount)}</span></div>`).join("")}</div>` : ""}`;
+}
+
+/* ================= TASHRIF FORMASI ================= */
+function newVisitForm(clientId, apptId){
+  const c = clientId && clientById(clientId);
+  S.F = { clientId: c ? c.id : null, name:"", phone:"", items:[], dType:"sum", disc:"", pay:"cash", cash:"", card:"", note:"", date:S.day, time: S.day===today() ? nowHM() : "12:00", apptId: apptId||null };
+  go("visit");
+}
+function vfCalc(){
+  const F = S.F, sub = F.items.reduce((s,i)=>s+num(i.price),0);
+  let disc = F.dType === "pct" ? Math.round(sub*Math.min(100,num(F.disc))/100) : Math.min(sub, num(F.disc));
+  const total = Math.max(0, sub - disc);
+  let cash=0, card=0, debt=0;
+  if (F.pay === "cash") cash = total; else if (F.pay === "card") card = total; else if (F.pay === "debt") debt = total;
+  else { cash = num(F.cash); card = num(F.card); debt = total - cash - card; }
+  return { sub, disc, total, cash, card, debt };
+}
+function picker(P, prefix){
+  if (P.clientId) { const c = clientById(P.clientId), s = clientStats(c.id);
+    return `<div class="picked"><div class="av" style="${avBg(c.name)}">${esc(initials(c.name))}</div><div style="flex:1;min-width:0"><b>${esc(c.name)}</b><div class="muted" style="font-size:13px">${esc(c.phone||"")}${s.count ? ` · ${s.count}-tashrif` : ""}${s.debt ? ` · <span class="neg">qarz ${fmt(s.debt)}</span>` : ""}</div></div>
+      <button class="btn gray sm" data-a="unpick" data-v="${prefix}">O'zgartirish</button></div>`; }
+  return `<label class="field"><span>Ism yoki telefon (bazadan qidirish)</span><input class="inp" data-f="${prefix}.name" value="${esc(P.name)}" placeholder="Masalan: Jasur" autocomplete="off"></label>
+    <div class="res" id="pickRes">${pickResults(P, prefix)}</div>
+    <label class="field"><span>Telefon (yangi mijoz uchun)</span><input class="inp" type="tel" inputmode="tel" data-f="${prefix}.phone" value="${esc(P.phone)}" placeholder="+998 90 123 45 67"></label>
+    <p class="note">Bazada bo'lmasa — yangi mijoz sifatida saqlanadi. Bo'sh qoldirsangiz, "Mijoz" deb yoziladi.</p>`;
+}
+function pickResults(P, prefix){
+  const q = P.name.trim().toLowerCase(); if (q.length < 1) return "";
+  const qd = q.replace(/\D/g,"");
+  const m = DB.clients.filter(c => c.name.toLowerCase().includes(q) || (qd.length >= 3 && phoneLink(c.phone).includes(qd))).slice(0,5);
+  return m.map(c => `<button data-a="pick" data-v="${c.id}" data-p="${prefix}"><span class="av" style="${avBg(c.name)}">${esc(initials(c.name))}</span><span style="flex:1"><b>${esc(c.name)}</b><br><small class="muted">${esc(c.phone||"")}</small></span>${I.check}</button>`).join("");
+}
+function vVisit(){
+  const F = S.F, k = vfCalc();
+  const svc = ST().services;
+  return `${topBar("Mijoz keldi", dLong(F.date))}
+  <div class="card">${picker(F, "F")}</div>
+  <h2 class="sec">Xizmatlar</h2>
+  <div class="chips">${svc.map(s => `<button class="chip ${F.items.some(i=>i.sid===s.id)?"on":""}" data-a="toggleSvc" data-v="${s.id}">${esc(s.name)} <small>${fmt(s.price)}</small></button>`).join("")}
+    <button class="chip" data-a="customSvc">+ Boshqa</button></div>
+  ${F.items.length ? `<div class="card" style="margin-top:10px">${F.items.map((it,i) => `<div class="irow" ${i===0?'style="margin-top:0"':""}>
+      <input class="inp" data-f="Fi.${i}.name" value="${esc(it.name)}" aria-label="Xizmat nomi" placeholder="Xizmat">
+      <input class="inp" data-f="Fi.${i}.price" value="${esc(it.price)}" inputmode="numeric" aria-label="Narxi">
+      <button class="ib" style="width:40px;height:40px;box-shadow:none;background:var(--red-soft);color:var(--red)" data-a="rmItem" data-v="${i}" aria-label="Olib tashlash">${I.x}</button></div>`).join("")}</div>` : ""}
+  <h2 class="sec">Chegirma</h2>
+  <div class="card"><div class="two">
+    <div class="seg"><button class="${F.dType==="sum"?"on":""}" data-a="dType" data-v="sum">So'm</button><button class="${F.dType==="pct"?"on":""}" data-a="dType" data-v="pct">%</button></div>
+    <input class="inp" data-f="F.disc" value="${esc(F.disc)}" inputmode="numeric" placeholder="0" aria-label="Chegirma">
+  </div></div>
+  <h2 class="sec">To'lov</h2>
+  <div class="card">
+    <div class="seg"><button class="${F.pay==="cash"?"on":""}" data-a="pay" data-v="cash">Naqd</button><button class="${F.pay==="card"?"on":""}" data-a="pay" data-v="card">Karta</button><button class="${F.pay==="debt"?"on":""}" data-a="pay" data-v="debt">Nasiya</button><button class="${F.pay==="mix"?"on":""}" data-a="pay" data-v="mix">Aralash</button></div>
+    ${F.pay === "mix" ? `<div class="two" style="margin-top:12px"><label class="field" style="margin:0"><span>Naqd</span><input class="inp" data-f="F.cash" value="${esc(F.cash)}" inputmode="numeric" placeholder="0"></label>
+      <label class="field" style="margin:0"><span>Karta</span><input class="inp" data-f="F.card" value="${esc(F.card)}" inputmode="numeric" placeholder="0"></label></div><p class="note">Qolgani nasiyaga yoziladi.</p>` : ""}
+    <div id="vfBreak" style="margin-top:8px">${vfBreak(k)}</div>
+  </div>
+  <h2 class="sec">Qo'shimcha</h2>
+  <div class="card"><div class="two"><label class="field" style="margin:0"><span>Sana</span><input class="inp" type="date" data-f="F.date" value="${F.date}"></label>
+    <label class="field" style="margin:0"><span>Vaqt</span><input class="inp" type="time" data-f="F.time" value="${F.time}"></label></div>
+    <label class="field"><span>Izoh</span><input class="inp" data-f="F.note" value="${esc(F.note)}" placeholder="Ixtiyoriy"></label></div>
+  ${savebar("Saqlash", "saveVisit", vfSum(k))}`;
+}
+const vfSum = k => `<small>Jami to'lov</small><b>${money(k.total)}</b>`;
+function vfBreak(k){
+  return `<div class="row"><span class="k">Xizmatlar</span><span class="v">${fmt(k.sub)}</span></div>
+    ${k.disc ? `<div class="row"><span class="k">Chegirma</span><span class="v" style="color:var(--violet)">−${fmt(k.disc)}</span></div>` : ""}
+    ${k.cash ? `<div class="row"><span class="k">Naqd</span><span class="v pos">${fmt(k.cash)}</span></div>` : ""}
+    ${k.card ? `<div class="row"><span class="k">Karta</span><span class="v" style="color:var(--blue)">${fmt(k.card)}</span></div>` : ""}
+    ${k.debt > 0 ? `<div class="row"><span class="k">Nasiya (qarz)</span><span class="v neg">${fmt(k.debt)}</span></div>` : ""}
+    ${k.debt < 0 ? `<div class="row"><span class="k neg">To'lov jamidan ko'p</span><span class="v neg">${fmt(-k.debt)}</span></div>` : ""}`;
+}
+function ensureClient(P){
+  if (P.clientId) return P.clientId;
+  const name = P.name.trim(); if (!name) return null;
+  const c = { id: uid(), name, phone: P.phone.trim(), tg:"", note:"", createdAt: today() };
+  DB.clients.push(c); return c.id;
+}
+function saveVisit(){
+  const F = S.F, k = vfCalc();
+  if (!F.items.length || !k.sub) { haptic("error"); toast("Kamida bitta xizmat tanlang"); return; }
+  if (k.debt < 0) { haptic("error"); toast("Naqd + karta jami summadan oshib ketdi"); return; }
+  if (k.debt > 0 && !F.clientId && !F.name.trim()) { haptic("error"); toast("Nasiya uchun mijoz ismini kiriting"); return; }
+  const clientId = ensureClient(F);
+  DB.visits.push({ id: uid(), date: F.date, time: F.time, clientId, name: clientId ? "" : "Mijoz",
+    items: F.items.map(i => ({ name: i.name.trim() || "Xizmat", price: num(i.price) })),
+    subtotal: k.sub, discount: k.disc, total: k.total, cash: k.cash, card: k.card, debt: k.debt, note: F.note.trim() });
+  if (F.apptId) { const a = DB.appts.find(x => x.id === F.apptId); if (a) a.done = true; }
+  persist(); haptic("success"); toast(k.debt ? `Saqlandi · ${fmt(k.debt)} nasiyaga yozildi` : "Saqlandi");
+  S.day = F.date; S.F = null; S.stack = []; S.screen = "home"; render(true);
+}
+
+/* ================= MIJOZLAR ================= */
+function vClients(){
+  return `${topBar("Mijozlar", `Bazada ${DB.clients.length} ta mijoz`)}
+  <div class="srch"><label class="sbox">${I.search}<input data-f="cSearch" value="${esc(S.cSearch)}" placeholder="Ism yoki telefon..." aria-label="Qidirish"></label><button class="ib acc" data-a="newClient" aria-label="Yangi mijoz">${I.plus}</button></div>
+  <div class="chips scroll" style="margin-top:10px">${[["all","Hammasi"],["due","Kelish vaqti keldi"],["debt","Qarzdorlar"],["new","Bu oy yangi"],["top","Doimiylar"]].map(([id,l]) =>
+    `<button class="chip ${S.cFilter===id?"on":""}" data-a="cFilter" data-v="${id}">${l}</button>`).join("")}</div>
+  <div id="clist" style="margin-top:12px">${clientsList()}</div>
+  <button class="fab" data-a="newClient">${I.plus} Mijoz</button>`;
+}
+function clientsList(){
+  const q = S.cSearch.trim().toLowerCase(), qd = q.replace(/\D/g,""), m = today().slice(0,7);
+  let arr = DB.clients.map(c => ({ c, s: clientStats(c.id) }));
+  if (q) arr = arr.filter(x => x.c.name.toLowerCase().includes(q) || (qd.length >= 3 && phoneLink(x.c.phone).includes(qd)));
+  if (S.cFilter === "due") arr = arr.filter(x => x.s.due);
+  if (S.cFilter === "debt") arr = arr.filter(x => x.s.debt > 0);
+  if (S.cFilter === "new") arr = arr.filter(x => (x.c.createdAt||"").startsWith(m));
+  if (S.cFilter === "top") arr = arr.filter(x => x.s.count >= 3).sort((a,b) => b.s.count - a.s.count);
+  else arr.sort((a,b) => (b.s.last||"").localeCompare(a.s.last||""));
+  if (!arr.length) return empty(DB.clients.length ? "Hech kim topilmadi" : "Baza hozircha bo'sh", DB.clients.length ? "Qidiruv yoki filtrni o'zgartiring." : "Mijoz kelganda u avtomatik bazaga qo'shiladi.");
+  return `<div class="list">${arr.map(({c,s}) => `<button class="item" data-a="openClient" data-v="${c.id}">
+    <div class="av" style="${avBg(c.name)}">${esc(initials(c.name))}</div>
+    <div class="mid"><div class="t1">${esc(c.name)}</div><div class="t2">${s.last ? `Oxirgi: ${ago(s.last)} · ${s.count} marta` : "Hali tashrif yo'q"}</div></div>
+    <div class="rt">${s.debt ? `<span class="tag debt">Qarz ${fmt(s.debt)}</span>` : ""}${s.due && !s.appt ? `<div class="tags"><span class="tag acc">Kelish vaqti</span></div>` : s.appt ? `<div class="tags"><span class="tag card">Navbat ${dLabel(s.appt.date)}</span></div>` : ""}</div>
+  </button>`).join("")}</div>`;
+}
+function vClient(){
+  const c = clientById(S.clientId); if (!c) { S.screen = "clients"; return vClients(); }
+  const s = clientStats(c.id), ph = phoneLink(c.phone);
+  const rText = tpl(ST().tVisit, { ism:c.name, kun: s.since ?? 0, sartaroshxona: ST().shop });
+  return `${topBar("Mijoz kartasi", "", `<button class="ib" data-a="editClient" data-v="${c.id}" aria-label="Tahrirlash">${I.edit}</button>`)}
+  <div class="card">
+    <div class="prof"><div class="av" style="${avBg(c.name)}">${esc(initials(c.name))}</div><div><h3>${esc(c.name)}</h3><div class="sub">${esc(c.phone || "Telefon kiritilmagan")}${c.tg ? " · @"+esc(c.tg) : ""}</div></div></div>
+    <div class="btns" style="margin-top:12px">
+      ${ph ? `<a class="btn gray sm" href="tel:${ph}">${I.phone} Qo'ng'iroq</a><a class="btn gray sm" href="sms:${ph}?&body=${encodeURIComponent(rText)}" data-a="markRem" data-v="${c.id}">${I.sms} SMS</a>` : ""}
+      <button class="btn gray sm" data-a="tgSend" data-v="${c.id}" data-k="visit">${I.send} Telegram</button>
+    </div>
+    <div class="stat4">
+      <div><small>Tashriflar</small><b>${s.count} marta</b></div>
+      <div><small>Jami sarflagan</small><b>${fmt(s.spent)}</b></div>
+      <div><small>O'rtacha chek</small><b>${fmt(s.avgCheck)}</b></div>
+      <div><small>Odatda keladi</small><b>${s.avg ? `har ${s.avg} kunda` : "—"}</b></div>
+      <div><small>Oxirgi tashrif</small><b>${s.last ? ago(s.last) : "—"}</b></div>
+      <div><small>Keyingi (taxmin)</small><b class="${s.due?"neg":""}">${s.next ? dLabel(s.next) : "—"}</b></div>
+    </div>
+    ${c.note ? `<p class="note">📝 ${esc(c.note)}</p>` : ""}
+  </div>
+  ${s.debt ? `<div class="card" style="margin-top:10px;border-left:4px solid var(--red)"><div class="row"><span class="k">Qarzi</span><span class="v neg" style="font-size:18px">${money(s.debt)}</span></div>
+    <div class="btns" style="margin-top:6px"><button class="btn acc" data-a="openPay" data-v="${c.id}">To'lov qabul qilish</button><button class="btn soft" data-a="tgSend" data-v="${c.id}" data-k="debt">Eslatish</button></div></div>` : ""}
+  <div class="btns" style="margin-top:10px">
+    <button class="btn card" data-a="apptFor" data-v="${c.id}">${I.cal} ${s.appt ? `Navbat: ${dLabel(s.appt.date)} ${s.appt.time}` : "Navbatga yozish"}</button>
+  </div>
+  <h2 class="sec">Tashriflar tarixi <small>${s.count} ta</small></h2>
+  ${s.count ? `<div class="list">${s.vs.slice().reverse().slice(0,30).map(v => `<div class="item"><div class="av t">${parseYmd(v.date).getDate()}<small style="font-size:10px;font-weight:500">${MON[parseYmd(v.date).getMonth()].slice(0,3)}</small></div>
+    <div class="mid"><div class="t1">${esc(v.items.map(i=>i.name).join(", "))}</div><div class="t2">${v.time}${v.note ? " · "+esc(v.note) : ""}</div></div>
+    <div class="rt"><b>${fmt(v.total)}</b><div class="tags">${payTags(v)}</div></div></div>`).join("")}</div>`
+  : empty("Tashrif yo'q", "Bu mijoz hali kelmagan.")}`;
+}
+function vClientForm(){
+  const C = S.C;
+  return `${topBar(C.id ? "Mijozni tahrirlash" : "Yangi mijoz")}
+  <div class="card">
+    <label class="field"><span>Ism familiya</span><input class="inp" data-f="C.name" value="${esc(C.name)}" placeholder="Ism"></label>
+    <label class="field"><span>Telefon</span><input class="inp" type="tel" inputmode="tel" data-f="C.phone" value="${esc(C.phone)}" placeholder="+998 90 123 45 67"></label>
+    <label class="field"><span>Telegram username (@ siz)</span><input class="inp" data-f="C.tg" value="${esc(C.tg)}" placeholder="username" autocapitalize="off"></label>
+    <label class="field"><span>Izoh (soch turi, istaklari...)</span><textarea class="inp" data-f="C.note" placeholder="Masalan: yon tomoni 2 mm, tepasi qaychi">${esc(C.note)}</textarea></label>
+  </div>
+  ${C.id ? `<button class="btn red block" style="margin-top:14px" data-a="delClient" data-v="${C.id}">${I.trash} Mijozni o'chirish</button>` : ""}
+  ${savebar("Saqlash", "saveClient")}`;
+}
+function saveClient(){
+  const C = S.C; if (!C.name.trim()) { haptic("error"); toast("Ismni kiriting"); return; }
+  const tgU = C.tg.trim().replace(/^@/,"");
+  if (C.id) Object.assign(clientById(C.id), { name:C.name.trim(), phone:C.phone.trim(), tg:tgU, note:C.note.trim() });
+  else { const c = { id: uid(), name:C.name.trim(), phone:C.phone.trim(), tg:tgU, note:C.note.trim(), createdAt: today() }; DB.clients.push(c); C.id = c.id; }
+  persist(); haptic("success"); toast("Saqlandi");
+  S.clientId = C.id; S.C = null; S.stack = S.stack.filter(x => x !== "client"); S.screen = "client"; render(true);
+}
+
+/* ================= QARZLAR ================= */
+function vDebts(){
+  const arr = DB.clients.map(c => ({ c, d: clientDebt(c.id) })).filter(x => x.d > 0).sort((a,b) => b.d - a.d);
+  const total = arr.reduce((s,x)=>s+x.d, 0);
+  const oldest = id => { const v = DB.visits.filter(v => v.clientId === id && v.debt > 0).sort((a,b)=>a.date.localeCompare(b.date))[0]; return v ? v.date : null; };
+  return `${topBar("Qarzdorlar", "Nasiyaga xizmat olganlar")}
+  <section class="hero"><div class="glow"></div><div class="lbl">Umumiy qarz</div><div class="big">${money(total)}</div>
+    <div class="row2"><span class="pill">${arr.length} ta qarzdor</span><span class="pill">Bu oy qaytdi: ${fmt(totals(x => x.startsWith(today().slice(0,7))).debtBack)}</span></div></section>
+  <h2 class="sec">Ro'yxat</h2>
+  ${arr.length ? `<div class="list">${arr.map(({c,d}) => { const o = oldest(c.id), ph = phoneLink(c.phone);
+    return `<div class="card fade"><div class="picked"><div class="av" style="${avBg(c.name)}">${esc(initials(c.name))}</div>
+      <button style="flex:1;min-width:0;text-align:left" data-a="openClient" data-v="${c.id}"><b>${esc(c.name)}</b><div class="muted" style="font-size:13px">${o ? (daysBetween(o, today()) ? `${daysBetween(o, today())} kundan beri` : "bugundan") : ""}${c.phone ? " · "+esc(c.phone) : ""}</div></button>
+      <b class="neg" style="white-space:nowrap">${fmt(d)}</b></div>
+      <div class="btns" style="margin-top:10px"><button class="btn acc sm" data-a="openPay" data-v="${c.id}">To'lov olish</button>
+        <button class="btn soft sm" data-a="tgSend" data-v="${c.id}" data-k="debt">Eslatish</button>
+        ${ph ? `<a class="btn gray sm" href="tel:${ph}" aria-label="Qo'ng'iroq">${I.phone}</a>` : ""}</div></div>`; }).join("")}</div>`
+  : empty("Qarzdor yo'q", "Barcha mijozlar to'liq to'lagan. Zo'r!", "", I.wallet)}`;
+}
+function vPay(){
+  const P = S.P, c = clientById(P.clientId), d = clientDebt(c.id);
+  return `${topBar("To'lov qabul qilish", c.name)}
+  <div class="card"><div class="row"><span class="k">Joriy qarz</span><span class="v neg">${money(d)}</span></div></div>
+  <div class="card" style="margin-top:10px">
+    <label class="field"><span>Summa</span><input class="inp" data-f="P.amount" value="${esc(P.amount)}" inputmode="numeric" style="font-size:20px;font-weight:700"></label>
+    <div class="field"><span>Usul</span><div class="seg"><button class="${P.method==="cash"?"on":""}" data-a="pMethod" data-v="cash">Naqd</button><button class="${P.method==="card"?"on":""}" data-a="pMethod" data-v="card">Karta</button></div></div>
+    <p class="note">To'lov bugungi tushumga qo'shiladi.</p>
+  </div>
+  ${savebar("Qabul qilish", "savePay")}`;
+}
+function savePay(){
+  const P = S.P, d = clientDebt(P.clientId), a = num(P.amount);
+  if (!a) { haptic("error"); toast("Summani kiriting"); return; }
+  if (a > d) { haptic("error"); toast(`Qarz ${fmt(d)} dan oshmasin`); return; }
+  DB.payments.push({ id: uid(), date: today(), time: nowHM(), clientId: P.clientId, amount: a, method: P.method });
+  persist(); haptic("success"); toast(a === d ? "Qarz to'liq yopildi" : `Qabul qilindi, qoldiq ${fmt(d-a)}`);
+  S.P = null; goBack();
+}
+
+/* ================= ESLATMALAR ================= */
+function vReminders(){
+  const tm = addDays(today(),1), ap = apptsOn(tm), due = dueClients();
+  const row = (c, kind, sub, extraId) => { const ph = phoneLink(c.phone), text = msgText(c, kind, extraId);
+    return `<div class="card fade"><div class="picked"><div class="av" style="${avBg(c.name)}">${esc(initials(c.name))}</div>
+      <button style="flex:1;min-width:0;text-align:left" data-a="openClient" data-v="${c.id}"><b>${esc(c.name)}</b><div class="muted" style="font-size:13px">${sub}</div></button></div>
+      <div class="btns" style="margin-top:10px">
+        ${ph ? `<a class="btn soft sm" href="sms:${ph}?&body=${encodeURIComponent(text)}" data-a="markRem" data-v="${c.id}" data-k="${kind}" data-x="${extraId||""}">${I.sms} SMS</a>` : ""}
+        <button class="btn soft sm" data-a="tgSend" data-v="${c.id}" data-k="${kind}" data-x="${extraId||""}">${I.send} Telegram</button>
+        <button class="btn gray sm" data-a="copyMsg" data-v="${c.id}" data-k="${kind}" data-x="${extraId||""}" aria-label="Matnni nusxalash">${I.copy}</button>
+        ${kind === "visit" ? `<button class="btn gray sm" data-a="skipRem" data-v="${c.id}" aria-label="Keyinroq">${I.x}</button>` : ""}
+      </div></div>`; };
+  return `${topBar("Eslatmalar", "Mijozlarni qaytarib keling")}
+  <h2 class="sec">Ertangi navbatlar <small>${dLabel(tm)}</small></h2>
+  ${ap.length ? `<div class="list">${ap.map(a => { const c = clientById(a.clientId); return c ? row(c, "appt", `Soat ${a.time}${a.reminded ? " · ✓ eslatilgan" : ""}`, a.id) : ""; }).join("")}</div>`
+    : `<p class="note">Ertaga navbatga yozilganlar yo'q.</p>`}
+  <h2 class="sec">Kelish vaqti kelganlar <small>${due.length} ta</small></h2>
+  ${due.length ? `<div class="list">${due.map(({c,s}) => row(c, "visit", `Oxirgi: ${ago(s.last)} · odatda har ${s.interval} kunda`)).join("")}</div>`
+    : empty("Hammasi joyida", "Hozircha eslatma kerak bo'lgan mijoz yo'q.", "", I.bell)}
+  <p class="note">Mijoz odatda necha kunda kelishi uning tarixidan hisoblanadi. Tarixi kam bo'lsa — ${ST().interval} kun (sozlamada o'zgartiriladi).</p>`;
+}
+function msgText(c, kind, extraId){
+  const s = clientStats(c.id), shop = ST().shop;
+  if (kind === "debt") return tpl(ST().tDebt, { ism:c.name, qarz: money(s.debt), sartaroshxona: shop });
+  if (kind === "appt") { const a = DB.appts.find(x => x.id === extraId) || s.appt || {}; return tpl(ST().tAppt, { ism:c.name, sana: a.date ? dLong(a.date) : "", vaqt: a.time||"", sartaroshxona: shop }); }
+  return tpl(ST().tVisit, { ism:c.name, kun: s.since ?? 0, sartaroshxona: shop });
+}
+function markReminded(id, kind, extraId){
+  const c = clientById(id); if (!c) return;
+  if (kind === "appt") { const a = DB.appts.find(x => x.id === extraId); if (a) a.reminded = true; }
+  else if (kind !== "debt") c.remindedAt = today();
+  persist();
+}
+
+/* ================= NAVBATLAR ================= */
+function vAppts(){
+  const up = DB.appts.filter(a => a.date >= today() && !a.done).sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  const groups = {}; up.forEach(a => (groups[a.date] = groups[a.date] || []).push(a));
+  return `${topBar("Navbatlar", "Oldindan yozilganlar")}
+  ${up.length ? Object.keys(groups).map(d => `<h2 class="sec">${d===today()?"Bugun":d===addDays(today(),1)?"Ertaga":dLong(d)} <small>${groups[d].length} ta</small></h2>
+    <div class="list">${groups[d].map(a => { const c = clientById(a.clientId);
+      return `<div class="item"><div class="av t">${a.time}</div><button class="mid" style="text-align:left" data-a="openClient" data-v="${a.clientId}"><div class="t1">${esc(c ? c.name : "Mijoz")}</div><div class="t2">${esc(a.note || (c && c.phone) || "")}</div></button>
+        ${d===today() ? `<button class="btn green sm" data-a="apptCame" data-v="${a.id}">Keldi</button>` : ""}
+        <button class="ib" style="width:36px;height:36px;box-shadow:none;background:var(--bg)" data-a="delAppt" data-v="${a.id}" aria-label="Bekor qilish">${I.x}</button></div>`; }).join("")}</div>`).join("")
+  : empty("Navbat yo'q", "Telefon orqali yozilgan mijozlarni shu yerga qo'shing.", "", I.cal)}
+  <button class="fab" data-a="newAppt">${I.plus} Navbat</button>`;
+}
+function vApptForm(){
+  const A = S.A;
+  return `${topBar("Navbatga yozish")}
+  <div class="card">${picker(A, "A")}</div>
+  <div class="card" style="margin-top:10px"><div class="two">
+    <label class="field" style="margin:0"><span>Sana</span><input class="inp" type="date" min="${today()}" data-f="A.date" value="${A.date}"></label>
+    <label class="field" style="margin:0"><span>Vaqt</span><input class="inp" type="time" data-f="A.time" value="${A.time}"></label></div>
+    <label class="field"><span>Izoh</span><input class="inp" data-f="A.note" value="${esc(A.note)}" placeholder="Masalan: soch + soqol"></label></div>
+  ${savebar("Saqlash", "saveAppt")}`;
+}
+function saveAppt(){
+  const A = S.A;
+  if (!A.clientId && !A.name.trim()) { haptic("error"); toast("Mijozni tanlang yoki ismini yozing"); return; }
+  if (!A.date || !A.time) { haptic("error"); toast("Sana va vaqtni kiriting"); return; }
+  const clash = DB.appts.find(a => a.date === A.date && a.time === A.time && !a.done);
+  if (clash) { haptic("warning"); toast("Diqqat: bu vaqtda boshqa navbat bor"); }
+  const clientId = ensureClient(A);
+  DB.appts.push({ id: uid(), clientId, date: A.date, time: A.time, note: A.note.trim(), reminded:false, done:false });
+  persist(); haptic("success"); toast("Navbat qo'shildi"); S.A = null; goBack();
+}
+
+/* ================= XARAJATLAR ================= */
+function vExpenses(){
+  const m = S.expMonth, T = totals(x => x.startsWith(m));
+  const byCat = {}; T.E.forEach(e => byCat[e.category] = (byCat[e.category]||0) + e.amount);
+  const max = Math.max(1, ...Object.values(byCat));
+  const list = T.E.slice().sort((a,b)=>b.date.localeCompare(a.date));
+  return `${topBar("Xarajatlar", mLabel(m), `<button class="ib" data-a="expMonth" data-v="-1" aria-label="Oldingi oy">${I.left}</button><button class="ib" data-a="expMonth" data-v="1" aria-label="Keyingi oy">${I.right}</button>`)}
+  <section class="hero"><div class="glow"></div><div class="lbl">Oylik xarajat</div><div class="big">${money(T.expense)}</div><div class="row2"><span class="pill">${T.E.length} ta yozuv</span></div></section>
+  ${Object.keys(byCat).length ? `<div class="card" style="margin-top:10px">${Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([k,v]) => `<div class="hbar"><div class="hl"><span>${esc(k)}</span><b>${fmt(v)}</b></div><div class="tr"><i style="width:${v/max*100}%"></i></div></div>`).join("")}</div>` : ""}
+  <h2 class="sec">Yozuvlar</h2>
+  ${list.length ? `<div class="list">${list.map(e => `<div class="item"><div class="av t">${parseYmd(e.date).getDate()}<small style="font-size:10px;font-weight:500">${MON[parseYmd(e.date).getMonth()].slice(0,3)}</small></div>
+    <div class="mid"><div class="t1">${esc(e.category)}</div><div class="t2">${esc(e.note || (e.method==="card"?"Karta":"Naqd"))}</div></div><div class="rt"><b>${fmt(e.amount)}</b></div>
+    <button class="ib" style="width:36px;height:36px;box-shadow:none;background:var(--bg)" data-a="delExp" data-v="${e.id}" aria-label="O'chirish">${I.trash}</button></div>`).join("")}</div>`
+  : empty("Xarajat yo'q", "Ijara, kommunal, materiallar — hammasini shu yerga yozing.", "", I.receipt)}
+  <button class="fab" data-a="addExpense">${I.plus} Xarajat</button>`;
+}
+function vExpenseForm(){
+  const E = S.E;
+  return `${topBar("Xarajat qo'shish")}
+  <div class="card">
+    <label class="field"><span>Summa</span><input class="inp" data-f="E.amount" value="${esc(E.amount)}" inputmode="numeric" placeholder="0" style="font-size:20px;font-weight:700"></label>
+    <div class="field"><span>Turi</span><div class="chips">${ST().categories.map(c => `<button class="chip ${E.category===c?"on":""}" data-a="eCat" data-v="${esc(c)}">${esc(c)}</button>`).join("")}</div></div>
+    <div class="field"><span>Qanday to'landi</span><div class="seg"><button class="${E.method==="cash"?"on":""}" data-a="eMethod" data-v="cash">Naqd</button><button class="${E.method==="card"?"on":""}" data-a="eMethod" data-v="card">Karta</button></div></div>
+    <label class="field"><span>Sana</span><input class="inp" type="date" data-f="E.date" value="${E.date}"></label>
+    <label class="field"><span>Izoh</span><input class="inp" data-f="E.note" value="${esc(E.note)}" placeholder="Masalan: shampun, 2 dona"></label>
+  </div>
+  ${savebar("Saqlash", "saveExpense")}`;
+}
+function saveExpense(){
+  const E = S.E, a = num(E.amount);
+  if (!a) { haptic("error"); toast("Summani kiriting"); return; }
+  DB.expenses.push({ id: uid(), date: E.date, category: E.category, amount: a, method: E.method, note: E.note.trim() });
+  persist(); haptic("success"); toast("Xarajat yozildi"); S.E = null; goBack();
+}
+
+/* ================= OYLIK HISOBOT ================= */
+function monthReport(m){
+  const T = totals(x => x.startsWith(m)), P = totals(x => x.startsWith(addMonths(m,-1)));
+  const ids = new Set(T.V.filter(v=>v.clientId).map(v=>v.clientId));
+  const newC = DB.clients.filter(c => (c.createdAt||"").startsWith(m)).length;
+  const dn = daysInMonth(m), days = Array.from({length:dn}, (_,i) => `${m}-${pad(i+1)}`);
+  const daily = days.map(d => { const t = totals(x => x === d); return { d, income: t.income, visits: t.visits }; });
+  const best = daily.reduce((a,b) => b.income > a.income ? b : a, daily[0]);
+  const svc = {}; T.V.forEach(v => v.items.forEach(i => { svc[i.name] = svc[i.name] || { n:0, s:0 }; svc[i.name].n++; svc[i.name].s += i.price; }));
+  const cats = {}; T.E.forEach(e => cats[e.category] = (cats[e.category]||0) + e.amount);
+  const wd = [0,0,0,0,0,0,0]; T.V.forEach(v => wd[parseYmd(v.date).getDay()]++);
+  const endDate = m === today().slice(0,7) ? today() : `${m}-${pad(dn)}`;
+  let debtEnd = 0; DB.visits.forEach(v => { if (v.date <= endDate) debtEnd += v.debt; }); DB.payments.forEach(p => { if (p.date <= endDate) debtEnd -= p.amount; });
+  const workDays = daily.filter(x => x.visits).length;
+  return { m, T, P, unique: ids.size, newC, daily, best, svc, cats, wd, debtEnd: Math.max(0,debtEnd), workDays,
+           avgCheck: T.visits ? Math.round(T.sales/T.visits) : 0, avgDay: workDays ? Math.round(T.income/workDays) : 0 };
+}
+const delta = (a,b) => { if (!(b > 0)) return ""; const p = Math.round((a-b)/b*100); return `<span class="delta ${p>=0?"up":"dn"}">${p>=0?"+":""}${p}%</span>`; };
+function vReport(){
+  const R = monthReport(S.month), T = R.T, max = Math.max(1, ...R.daily.map(x=>x.income));
+  const svcArr = Object.entries(R.svc).sort((a,b)=>b[1].s-a[1].s), smax = Math.max(1, ...svcArr.map(x=>x[1].s));
+  const catArr = Object.entries(R.cats).sort((a,b)=>b[1]-a[1]);
+  const wmax = Math.max(1, ...R.wd), order = [1,2,3,4,5,6,0];
+  return `${topBar("Oylik hisobot", ST().shop, `<button class="ib" data-a="month" data-v="-1" aria-label="Oldingi oy">${I.left}</button><button class="ib" data-a="month" data-v="1" aria-label="Keyingi oy">${I.right}</button>`)}
+  <section class="hero"><div class="glow"></div><div class="lbl">${mLabel(R.m)} · kassaga tushum</div><div class="big">${money(T.income)}</div>
+    <div class="row2"><span class="pill">Sof foyda ${fmt(T.net)}</span>${R.P.income > 0 ? `<span class="pill">O'tgan oyga: ${(() => { const p = Math.round((T.income-R.P.income)/R.P.income*100); return (p>=0?"+":"")+p+"%"; })()}</span>` : ""}</div></section>
+  <div class="tiles">
+    <div class="tile"><span class="l">Tashriflar</span><span class="n">${T.visits}</span></div>
+    <div class="tile"><span class="l">Noyob mijoz</span><span class="n">${R.unique}</span></div>
+    <div class="tile"><span class="l">Yangi mijoz</span><span class="n">${R.newC}</span></div>
+  </div>
+  <h2 class="sec">Pul oqimi</h2>
+  <div class="card p0">
+    <div class="row"><span class="k">Xizmatlar summasi</span><span class="v">${fmt(T.sales)}</span></div>
+    <div class="row"><span class="k">Chegirmalar</span><span class="v" style="color:var(--violet)">−${fmt(T.discount)}</span></div>
+    <div class="row"><span class="k">Naqd</span><span class="v pos">${fmt(T.cash)}</span></div>
+    <div class="row"><span class="k">Karta</span><span class="v" style="color:var(--blue)">${fmt(T.card)}</span></div>
+    <div class="row"><span class="k">Nasiyaga berildi</span><span class="v neg">${fmt(T.debtGiven)}</span></div>
+    <div class="row"><span class="k">Qarzdan qaytdi</span><span class="v pos">${fmt(T.debtBack)}</span></div>
+    <div class="row"><span class="k">Xarajatlar</span><span class="v neg">−${fmt(T.expense)}</span></div>
+    <div class="row tot"><span class="k">Sof foyda</span><span class="v ${T.net<0?"neg":""}">${money(T.net)} ${delta(T.net, R.P.net)}</span></div>
+  </div>
+  <h2 class="sec">Kunlik tushum <small>eng yaxshi kun: ${R.best && R.best.income ? dLabel(R.best.d) : "—"}</small></h2>
+  <div class="card"><div class="chart" role="img" aria-label="Kunlik tushum grafigi">${R.daily.map(x => `<div class="${x.income?"":"z"}" style="height:${x.income ? Math.max(4, x.income/max*100) : 2}%" title="${dLabel(x.d)}: ${fmt(x.income)}"></div>`).join("")}</div>
+    <div class="chart-x"><span>1</span><span>${Math.ceil(R.daily.length/2)}</span><span>${R.daily.length}</span></div></div>
+  <h2 class="sec">Ko'rsatkichlar</h2>
+  <div class="card p0">
+    <div class="row"><span class="k">O'rtacha chek</span><span class="v">${fmt(R.avgCheck)}</span></div>
+    <div class="row"><span class="k">Ishlagan kunlar</span><span class="v">${R.workDays} kun</span></div>
+    <div class="row"><span class="k">Kuniga o'rtacha tushum</span><span class="v">${fmt(R.avgDay)}</span></div>
+    <div class="row"><span class="k">Kuniga o'rtacha mijoz</span><span class="v">${R.workDays ? (T.visits/R.workDays).toFixed(1) : 0}</span></div>
+    <div class="row"><span class="k">Oy oxiridagi umumiy qarz</span><span class="v neg">${fmt(R.debtEnd)}</span></div>
+  </div>
+  <h2 class="sec">Xizmatlar</h2>
+  <div class="card">${svcArr.length ? svcArr.map(([k,v]) => `<div class="hbar"><div class="hl"><span>${esc(k)} <span class="muted">· ${v.n} ta</span></span><b>${fmt(v.s)}</b></div><div class="tr"><i style="width:${v.s/smax*100}%"></i></div></div>`).join("") : `<p class="note" style="margin:0">Ma'lumot yo'q</p>`}</div>
+  <h2 class="sec">Hafta kunlari bo'yicha mijozlar</h2>
+  <div class="card">${order.map(d => `<div class="hbar"><div class="hl"><span>${WD[d]}</span><b>${R.wd[d]}</b></div><div class="tr"><i style="width:${R.wd[d]/wmax*100}%"></i></div></div>`).join("")}</div>
+  ${catArr.length ? `<h2 class="sec">Xarajatlar <small>${money(T.expense)}</small></h2><div class="card p0">${catArr.map(([k,v]) => `<div class="row"><span class="k">${esc(k)}</span><span class="v">${fmt(v)}</span></div>`).join("")}</div>` : ""}
+  <div class="btns noprint" style="margin-top:16px">
+    <button class="btn acc" data-a="repCopy">${I.copy} Matnni nusxalash</button>
+    <button class="btn card" data-a="repCsv">${I.down} Excel (CSV)</button>
+  </div>
+  ${!IN_TG ? `<button class="btn gray block noprint" style="margin-top:8px" data-a="print">Chop etish / PDF</button>` : ""}`;
+}
+function reportText(m){
+  const R = monthReport(m), T = R.T;
+  const top3 = Object.entries(R.svc).sort((a,b)=>b[1].s-a[1].s).slice(0,3).map(([k,v]) => `   • ${k}: ${v.n} ta — ${fmt(v.s)}`).join("\n");
+  return `📊 ${ST().shop} — ${mLabel(m)} hisoboti
+
+💰 Kassaga tushum: ${money(T.income)}
+   💵 Naqd: ${fmt(T.cash)}
+   💳 Karta: ${fmt(T.card)}
+   ↩️ Qarzdan qaytdi: ${fmt(T.debtBack)}
+🧾 Xizmatlar summasi: ${fmt(T.sales)}
+🏷 Chegirmalar: ${fmt(T.discount)}
+📝 Nasiyaga berildi: ${fmt(T.debtGiven)}
+💸 Xarajatlar: ${fmt(T.expense)}
+✅ Sof foyda: ${money(T.net)}
+
+👥 Tashriflar: ${T.visits} (noyob: ${R.unique}, yangi: ${R.newC})
+🧮 O'rtacha chek: ${fmt(R.avgCheck)}
+📅 Ishlagan kunlar: ${R.workDays}, kuniga o'rtacha ${fmt(R.avgDay)}
+⏳ Umumiy qarz: ${fmt(R.debtEnd)}
+${top3 ? "\n🔝 Top xizmatlar:\n" + top3 : ""}`;
+}
+function reportCsv(m){
+  const R = monthReport(m), q = s => `"${String(s??"").replace(/"/g,'""')}"`;
+  const L = [["Sana","Vaqt","Mijoz","Xizmatlar","Summa","Chegirma","Jami","Naqd","Karta","Nasiya","Izoh"].map(q).join(";")];
+  R.T.V.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).forEach(v => { const c = clientById(v.clientId);
+    L.push([v.date, v.time, c ? c.name : "Mijoz", v.items.map(i=>i.name).join(", "), v.subtotal, v.discount, v.total, v.cash, v.card, v.debt, v.note].map(q).join(";")); });
+  L.push(""); L.push(["Qarz to'lovlari"].map(q).join(";")); L.push(["Sana","Mijoz","Summa","Usul"].map(q).join(";"));
+  R.T.P.forEach(p => { const c = clientById(p.clientId); L.push([p.date, c ? c.name : "", p.amount, p.method==="card"?"Karta":"Naqd"].map(q).join(";")); });
+  L.push(""); L.push(["Xarajatlar"].map(q).join(";")); L.push(["Sana","Turi","Summa","Usul","Izoh"].map(q).join(";"));
+  R.T.E.forEach(e => L.push([e.date, e.category, e.amount, e.method==="card"?"Karta":"Naqd", e.note].map(q).join(";")));
+  L.push(""); [["Tushum",R.T.income],["Naqd",R.T.cash],["Karta",R.T.card],["Chegirmalar",R.T.discount],["Nasiya",R.T.debtGiven],["Xarajatlar",R.T.expense],["Sof foyda",R.T.net],["Tashriflar",R.T.visits]].forEach(r => L.push(r.map(q).join(";")));
+  return "﻿" + L.join("\n");
+}
+
+/* ================= YANA ================= */
+function vMore(){
+  const rc = remindCount(), ap = DB.appts.filter(a => a.date >= today() && !a.done).length;
+  const T = totals(x => x.startsWith(today().slice(0,7)));
+  return `${topBar("Yana", ST().shop)}
+  <div class="list">
+    ${lrow("#FF9500", I.bell, "Eslatmalar", rc ? `<span class="badge">${rc}</span>` : "", 'data-a="tabTo" data-v="reminders"')}
+    ${lrow("#007AFF", I.cal, "Navbatlar", ap ? `${ap} ta` : "", 'data-a="tabTo" data-v="appts"')}
+    ${lrow("#FF3B30", I.receipt, "Xarajatlar", fmt(T.expense), 'data-a="tabTo" data-v="expenses"')}
+  </div>
+  <div class="list" style="margin-top:20px">${lrow("#8E8E93", I.gear, "Sozlamalar", "", 'data-a="tabTo" data-v="settings"')}</div>
+  <h2 class="sec">Bu oy qisqacha</h2>
+  <div class="card p0">
+    <div class="row"><span class="k">Tushum</span><span class="v">${fmt(T.income)}</span></div>
+    <div class="row"><span class="k">Tashriflar</span><span class="v">${T.visits}</span></div>
+    <div class="row"><span class="k">Sof foyda</span><span class="v">${fmt(T.net)}</span></div>
+  </div>`;
+}
+
+/* ================= SOZLAMALAR ================= */
+function vSettings(){
+  const D = S.draft || (S.draft = JSON.parse(JSON.stringify(ST())));
+  return `${topBar("Sozlamalar")}
+  <h2 class="sec" style="margin-top:4px">Sartaroshxona</h2>
+  <div class="card"><label class="field"><span>Nomi</span><input class="inp" data-f="D.shop" value="${esc(D.shop)}"></label>
+    <label class="field"><span>Usta ismi</span><input class="inp" data-f="D.master" value="${esc(D.master)}" placeholder="Ixtiyoriy"></label></div>
+  <h2 class="sec">Rasmlar va ko'rinish</h2>
+  <div class="card">
+    <div class="phrow"><div class="phprev" ${ST().photo ? `style="background-image:url(${ST().photo})"` : ""}>${ST().photo ? "" : I.scissors}</div><div class="grow"><b>Sartaroshxona rasmi</b><div class="muted" style="font-size:13px">Bosh sahifa va kirish ekranida chiqadi</div></div></div>
+    <div class="btns" style="margin-top:10px"><label class="btn soft sm">Rasm tanlash<input type="file" accept="image/*" id="photoShop" hidden></label>${ST().photo ? `<button class="btn gray sm" data-a="rmPhoto" data-v="photo">O'chirish</button>` : ""}</div>
+    <div class="phrow" style="margin-top:16px">${meAvatar()}<div class="grow"><b>Usta rasmi</b><div class="muted" style="font-size:13px">Yuqoridagi avatar</div></div></div>
+    <div class="btns" style="margin-top:10px"><label class="btn soft sm">Rasm tanlash<input type="file" accept="image/*" id="photoMaster" hidden></label>${ST().mphoto ? `<button class="btn gray sm" data-a="rmPhoto" data-v="mphoto">O'chirish</button>` : ""}</div>
+    <div class="field" style="margin-top:16px"><span>Mavzu</span><div class="seg"><button class="${ST().theme!=="light"?"on":""}" data-a="setTheme" data-v="dark">Jigarrang</button><button class="${ST().theme==="light"?"on":""}" data-a="setTheme" data-v="light">Yorug'</button></div></div>
+  </div>
+  <h2 class="sec">Google Sheets</h2>
+  <div class="card">
+    ${(() => { const Y = S.Y || (S.Y = { url: SYNC.url || "", key: SYNC.key || "" });
+      return `<label class="field"><span>Veb-ilova havolasi (/exec)</span><input class="inp" data-f="Y.url" value="${esc(Y.url)}" placeholder="https://script.google.com/macros/s/…/exec" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
+      <label class="field"><span>Kalit</span><input class="inp" data-f="Y.key" value="${esc(Y.key)}" placeholder="Apps Script'dagi KALIT" autocapitalize="off" autocomplete="off" spellcheck="false"></label>`; })()}
+    <div class="row" style="border:0;padding-bottom:4px"><span class="k">Holat</span><span class="v" id="syncStatus">${syncStatusHtml()}</span></div>
+    <div class="btns" style="margin-top:6px"><button class="btn acc sm" data-a="syncConnect">${syncOn() ? "Qayta ulash" : "Ulash"}</button>${syncOn() ? `<button class="btn gray sm" data-a="syncNow">Hozir yuborish</button><button class="btn red sm" data-a="syncOff">Uzish</button>` : ""}</div>
+    <p class="note">Har bir o'zgarish avtomatik jadvalga yoziladi: tashriflar, mijozlar, qarzdorlar, xarajatlar va oylik hisobot. Telegram orqali boshqa telefondan kirsangiz, o'zi ulanadi.</p>
+  </div>
+  <h2 class="sec">Xizmatlar va narxlar</h2>
+  <div class="card">${D.services.map((s,i) => `<div class="irow" ${i===0?'style="margin-top:0"':""}>
+      <input class="inp" data-f="Ds.${i}.name" value="${esc(s.name)}" aria-label="Xizmat nomi" placeholder="Nomi">
+      <input class="inp" data-f="Ds.${i}.price" value="${esc(s.price)}" inputmode="numeric" aria-label="Narxi">
+      <button class="ib" style="width:40px;height:40px;box-shadow:none;background:var(--red-soft);color:var(--red)" data-a="dSvcDel" data-v="${i}" aria-label="O'chirish">${I.x}</button></div>`).join("")}
+    <button class="btn soft block" style="margin-top:10px" data-a="dSvcAdd">+ Xizmat qo'shish</button></div>
+  <h2 class="sec">Eslatmalar</h2>
+  <div class="card">
+    <label class="field"><span>Tarixi yo'q mijoz necha kunda keladi deb hisoblansin</span><input class="inp" data-f="D.interval" value="${esc(D.interval)}" inputmode="numeric"></label>
+    <label class="field"><span>Qaytish eslatmasi — {ism} {kun} {sartaroshxona}</span><textarea class="inp" data-f="D.tVisit">${esc(D.tVisit)}</textarea></label>
+    <label class="field"><span>Navbat eslatmasi — {ism} {sana} {vaqt} {sartaroshxona}</span><textarea class="inp" data-f="D.tAppt">${esc(D.tAppt)}</textarea></label>
+    <label class="field"><span>Qarz eslatmasi — {ism} {qarz} {sartaroshxona}</span><textarea class="inp" data-f="D.tDebt">${esc(D.tDebt)}</textarea></label>
+  </div>
+  <h2 class="sec">Xarajat turlari</h2>
+  <div class="card"><label class="field"><span>Vergul bilan ajrating</span><input class="inp" data-f="D.catsText" value="${esc(D.catsText ?? D.categories.join(", "))}"></label></div>
+  <h2 class="sec">PIN-kod</h2>
+  <div class="card"><label class="field"><span>${ST().pin ? "PIN o'rnatilgan. Yangisini yozing yoki o'chiring" : "Ilovani ochishda 4 xonali PIN so'ralsin"}</span><input class="inp" data-f="D.newPin" value="${esc(D.newPin||"")}" inputmode="numeric" maxlength="4" placeholder="••••"></label>
+    ${ST().pin ? `<button class="btn red block" style="margin-top:10px" data-a="pinOff">PIN-kodni o'chirish</button>` : ""}</div>
+  <h2 class="sec">Zaxira nusxa</h2>
+  <div class="card">
+    <div class="btns"><button class="btn acc" data-a="backup">${I.down} Yuklab olish</button><button class="btn soft" data-a="backupCopy">${I.copy} Nusxalash</button></div>
+    <label class="btn gray block" style="margin-top:8px">JSON fayldan tiklash<input type="file" accept="application/json,.json" id="restore" hidden></label>
+    <p class="note">Ma'lumotlar faqat shu telefonda saqlanadi. Har hafta zaxira olib, o'zingizga Telegram'da yuborib qo'ying. Jami: ${DB.clients.length} mijoz, ${DB.visits.length} tashrif.</p>
+    <button class="btn red block" style="margin-top:10px" data-a="wipe">Barcha ma'lumotni o'chirish</button>
+  </div>
+  ${savebar("Saqlash", "saveSettings")}`;
+}
+function saveSettings(){
+  const D = S.draft;
+  const svcs = D.services.map(s => ({ id: s.id || uid(), name: String(s.name).trim(), price: num(s.price) })).filter(s => s.name);
+  if (!svcs.length) { haptic("error"); toast("Kamida bitta xizmat bo'lsin"); return; }
+  if (D.newPin && !/^\d{4}$/.test(D.newPin)) { haptic("error"); toast("PIN 4 ta raqam bo'lsin"); return; }
+  const cats = String(D.catsText ?? D.categories.join(",")).split(",").map(s=>s.trim()).filter(Boolean);
+  Object.assign(DB.settings, { shop: D.shop.trim() || "Sartaroshxona", master: D.master.trim(), services: svcs, interval: Math.max(1, num(D.interval) || 21),
+    tVisit: D.tVisit, tAppt: D.tAppt, tDebt: D.tDebt, categories: cats.length ? cats : DEFAULT_SETTINGS.categories });
+  if (D.newPin) DB.settings.pin = hashPin(D.newPin);
+  persist(); S.draft = null; haptic("success"); toast("Saqlandi"); render();
+}
+function restore(file){
+  const r = new FileReader();
+  r.onload = async () => { try { const d = JSON.parse(r.result); if (!d || !Array.isArray(d.visits) || !Array.isArray(d.clients)) throw 0;
+    if (!(await ask(`${d.clients.length} mijoz va ${d.visits.length} tashrif tiklansinmi? Hozirgi ma'lumotlar almashtiriladi.`))) return;
+    localStorage.setItem(DB_KEY, JSON.stringify(d)); DB = loadDB(); persist(); S.draft = null; haptic("success"); toast("Tiklandi"); render(); }
+    catch(e){ haptic("error"); toast("Fayl noto'g'ri"); } };
+  r.readAsText(file);
+}
+
+/* ================= PIN ekrani ================= */
+function vLock(){
+  const ph = ST().photo;
+  return `<div class="wel lockv ${ph?"ph":""}" ${ph ? `style="--ph:url(${ph})"` : ""}><div class="wel-art">${ART_SVG}</div>
+    <div class="ei">${I.lock}</div><b style="font-size:18px">${esc(ST().shop)}</b>
+    <div class="dots">${[0,1,2,3].map(i => `<i class="${i < S.pinBuf.length ? "f" : ""}"></i>`).join("")}</div>
+    <div class="pad">${[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map(k => k === "" ? "<span></span>" : `<button data-a="pinKey" data-v="${k}" aria-label="${k==="⌫"?"O'chirish":k}">${k}</button>`).join("")}</div></div>`;
+}
+function vWelcome(){
+  const W = S.W || (S.W = { shop: ST().shop === "Sartaroshxona" ? "" : ST().shop, master: ST().master || "" }), ph = ST().photo;
+  return `<div class="wel ${ph?"ph":""}" ${ph ? `style="--ph:url(${ph})"` : ""}>
+    <div class="wel-art">${ART_SVG}</div>
+    <div class="bars"><i></i><i class="on"></i><i></i></div>
+    <h1>Kassa, mijozlar va hisobot — bir teginishda</h1>
+    <p>Bugungi tushum, nasiya, qarzdorlar, eslatmalar va oylik hisobot — sartarosh uchun hammasi bir joyda.</p>
+    <label class="field"><span>Sartaroshxona nomi</span><input class="inp" data-f="W.shop" value="${esc(W.shop)}" placeholder="Masalan: Barber Pro"></label>
+    <label class="field"><span>Ismingiz</span><input class="inp" data-f="W.master" value="${esc(W.master)}" placeholder="Masalan: Sardor usta"></label>
+    <button class="slide" data-a="start"><span class="sc">${I.scissors}</span><b>Boshlash</b><span class="ar">›››</span></button>
+  </div>`;
+}
+
+
+/* ================= Render ================= */
+const VIEWS = { home:vHome, visit:vVisit, clients:vClients, client:vClient, clientForm:vClientForm, debts:vDebts, pay:vPay, reminders:vReminders,
+                appts:vAppts, apptForm:vApptForm, expenses:vExpenses, expenseForm:vExpenseForm, report:vReport, more:vMore, settings:vSettings };
+// Telegram MainButton (brauzerda — ramka ichidagi o'xshash tugma)
+let mainFn = null;
+if (IN_TG) tg.MainButton.onClick(() => { if (mainFn) { haptic(); mainFn(); } });
+document.getElementById("mbBtn").addEventListener("click", () => { if (mainFn) mainFn(); });
+function setMain(text, fn){
+  mainFn = text ? fn : null;
+  if (IN_TG) { try { if (!text) tg.MainButton.hide(); else tg.MainButton.setParams({ text, color:"#F47B3C", text_color:"#FFFFFF", is_visible:true, is_active:true }); } catch(e){} return; }
+  document.getElementById("mb").classList.toggle("show", !!text);
+  document.getElementById("mbBtn").textContent = text || "";
+}
+function mainFor(){
+  switch (S.screen) {
+    case "visit": return [`Saqlash · ${money(vfCalc().total)}`, saveVisit];
+    case "client": return ["Tashrif qo'shish", () => ACT.visitFor(S.clientId)];
+    case "clientForm": return ["Saqlash", saveClient];
+    case "pay": return ["Qabul qilish", savePay];
+    case "appts": return ["Navbat qo'shish", () => ACT.newAppt()];
+    case "apptForm": return ["Saqlash", saveAppt];
+    case "expenses": return ["Xarajat qo'shish", () => ACT.addExpense()];
+    case "expenseForm": return ["Saqlash", saveExpense];
+    case "settings": return ["Saqlash", saveSettings];
+  }
+  return [null, null];
+}
+const scroller = () => null;
+function render(toTop){
+  const app = document.getElementById("app"), sc = scroller(), ovl = document.getElementById("ovl"), nav = document.getElementById("navSlot");
+  const inner = S.unlocked && !TABS.includes(S.screen);
+  const over = !ST().onboarded ? vWelcome() : !S.unlocked ? vLock() : "";
+  ovl.innerHTML = over; document.documentElement.classList.toggle("ovl-on", !!over);
+  if (over) { nav.innerHTML = ""; setMain(null); try { IN_TG && tg.BackButton.hide(); } catch(e){} return; }
+  const y = sc ? sc.scrollTop : window.scrollY;
+  app.innerHTML = `<div class="${toTop?"fade":""}">${VIEWS[S.screen]()}</div>`;
+  nav.innerHTML = tabbar();
+  if (sc) sc.scrollTop = toTop ? 0 : y; else window.scrollTo(0, toTop ? 0 : y);
+  const rs = document.getElementById("restore"); if (rs) rs.onchange = e => e.target.files[0] && restore(e.target.files[0]);
+  const ps = document.getElementById("photoShop"); if (ps) ps.onchange = e => e.target.files[0] && readPhoto(e.target.files[0], 1100, d => { DB.settings.photo = d; persist(); toast("Rasm saqlandi"); render(); });
+  const pm = document.getElementById("photoMaster"); if (pm) pm.onchange = e => e.target.files[0] && readPhoto(e.target.files[0], 320, d => { DB.settings.mphoto = d; persist(); toast("Rasm saqlandi"); render(); });
+  if (IN_TG) { try { inner ? tg.BackButton.show() : tg.BackButton.hide(); } catch(e){} }
+  const [t, f] = mainFor(); setMain(t, f);
+}
+
+/* ================= Hodisalar ================= */
+const ACT = {
+  back: goBack, tab, tabTo: v => go(v),
+  dayShift: v => { S.day = addDays(S.day, +v); render(); },
+  newVisit: () => newVisitForm(null), visitFor: v => newVisitForm(v),
+  apptCame: v => { const a = DB.appts.find(x => x.id === v); if (a) { S.day = today(); newVisitForm(a.clientId, a.id); } },
+  toggleSvc: v => { const s = ST().services.find(x => x.id === v), F = S.F, i = F.items.findIndex(x => x.sid === v);
+    i >= 0 ? F.items.splice(i,1) : F.items.push({ sid: s.id, name: s.name, price: s.price }); render(); },
+  customSvc: () => { S.F.items.push({ sid: null, name: "", price: "" }); render(); setTimeout(() => { const els = document.querySelectorAll('[data-f$=".name"][data-f^="Fi."]'); els[els.length-1] && els[els.length-1].focus(); }, 50); },
+  rmItem: v => { S.F.items.splice(+v,1); render(); },
+  dType: v => { S.F.dType = v; render(); }, pay: v => { S.F.pay = v; render(); },
+  saveVisit,
+  pick: (v, el) => { const P = el.dataset.p === "A" ? S.A : S.F; P.clientId = v; render(); },
+  unpick: v => { const P = v === "A" ? S.A : S.F; P.clientId = null; P.name = ""; render(); },
+  delVisit: async v => { if (!(await ask("Bu tashrif o'chirilsinmi?"))) return; DB.visits = DB.visits.filter(x => x.id !== v); persist(); toast("O'chirildi"); render(); },
+  cFilter: v => { S.cFilter = v; render(); },
+  openClient: v => { if (!v) return; S.clientId = v; go("client"); },
+  newClient: () => { S.C = { id:null, name:"", phone:"", tg:"", note:"" }; go("clientForm"); },
+  editClient: v => { const c = clientById(v); S.C = { id:c.id, name:c.name, phone:c.phone||"", tg:c.tg||"", note:c.note||"" }; go("clientForm"); },
+  saveClient,
+  delClient: async v => { if (clientDebt(v) && !(await ask("Bu mijozda qarz bor. Baribir o'chirilsinmi?"))) return;
+    if (!(await ask("Mijoz o'chirilsinmi? Tashriflari hisobotda \"Mijoz\" bo'lib qoladi."))) return;
+    DB.clients = DB.clients.filter(c => c.id !== v); DB.visits.forEach(x => { if (x.clientId === v) { x.clientId = null; x.name = "Mijoz"; } });
+    DB.appts = DB.appts.filter(a => a.clientId !== v); DB.payments = DB.payments.filter(p => p.clientId !== v);
+    persist(); toast("O'chirildi"); S.stack = []; S.screen = "clients"; render(true); },
+  openPay: v => { S.P = { clientId: v, amount: String(clientDebt(v)), method: "cash" }; go("pay"); },
+  pMethod: v => { S.P.method = v; render(); }, savePay,
+  apptFor: v => { S.A = { clientId: v, name:"", phone:"", date: addDays(today(),1), time:"10:00", note:"" }; go("apptForm"); },
+  newAppt: () => { S.A = { clientId: null, name:"", phone:"", date: addDays(today(),1), time:"10:00", note:"" }; go("apptForm"); },
+  saveAppt,
+  delAppt: async v => { if (!(await ask("Navbat bekor qilinsinmi?"))) return; DB.appts = DB.appts.filter(a => a.id !== v); persist(); render(); },
+  addExpense: () => { S.E = { amount:"", category: ST().categories[0], method:"cash", date: S.screen === "home" ? S.day : today(), note:"" }; go("expenseForm"); },
+  eCat: v => { S.E.category = v; render(); }, eMethod: v => { S.E.method = v; render(); }, saveExpense,
+  delExp: async v => { if (!(await ask("Xarajat o'chirilsinmi?"))) return; DB.expenses = DB.expenses.filter(e => e.id !== v); persist(); render(); },
+  expMonth: v => { S.expMonth = addMonths(S.expMonth, +v); render(); },
+  month: v => { S.month = addMonths(S.month, +v); render(); },
+  openReport: v => { S.month = v; tab("report"); },
+  repCopy: () => copyText(reportText(S.month), "Hisobot nusxalandi — Telegram'ga joylang"),
+  repCsv: () => download(`hisobot-${S.month}.csv`, reportCsv(S.month), "text/csv;charset=utf-8"),
+  print: () => window.print(),
+  tgSend: (v, el) => { const c = clientById(v); if (!c) return; const text = msgText(c, el.dataset.k, el.dataset.x);
+    copyText(text, c.tg ? "Matn nusxalandi — chatga joylang" : "Matn tayyor — kimga yuborishni tanlang");
+    markReminded(v, el.dataset.k, el.dataset.x);
+    setTimeout(() => openLink(c.tg ? `https://t.me/${c.tg}` : `https://t.me/share/url?url=${encodeURIComponent(" ")}&text=${encodeURIComponent(text)}`), 350);
+    setTimeout(render, 800); },
+  markRem: (v, el) => { markReminded(v, el.dataset.k || "visit", el.dataset.x); setTimeout(render, 600); },
+  copyMsg: (v, el) => { const c = clientById(v); copyText(msgText(c, el.dataset.k, el.dataset.x)); markReminded(v, el.dataset.k, el.dataset.x); render(); },
+  skipRem: v => { markReminded(v, "visit"); toast("7 kundan keyin yana ko'rsatiladi"); render(); },
+  dSvcAdd: () => { S.draft.services.push({ id: uid(), name:"", price:"" }); render(); },
+  dSvcDel: v => { S.draft.services.splice(+v,1); render(); },
+  saveSettings,
+  pinOff: async () => { if (!(await ask("PIN-kod o'chirilsinmi?"))) return; DB.settings.pin = ""; persist(); S.draft = null; toast("PIN o'chirildi"); render(); },
+  backup: () => download(`usta-zaxira-${today()}.json`, JSON.stringify({ app:"usta-kassa", exportedAt: new Date().toISOString(), ...DB }), "application/json"),
+  backupCopy: () => copyText(JSON.stringify({ app:"usta-kassa", ...DB })),
+  wipe: async () => { if (!(await ask("Hamma ma'lumot o'chadi! Avval zaxira olganmisiz?"))) return; if (!(await ask("Rostdan ham hammasini o'chiramizmi?"))) return;
+    const st = DB.settings; DB = { settings: st, clients:[], visits:[], payments:[], expenses:[], appts:[] }; persist(); toast("Tozalandi"); tab("home"); },
+  pickDay: v => { S.day = v; render(); },
+  syncConnect: async () => { const Y = S.Y || {}; if (await connectSync(Y.url, Y.key)) { S.Y = null; render(); } },
+  syncNow: () => { SYNC.pending = true; saveSync(); refreshSyncUi(); pushSync(); },
+  syncOff: async () => { if (!(await ask("Google Sheets bilan aloqa uzilsinmi? Ma'lumotlar telefonda qoladi."))) return; SYNC = {}; saveSync(); cloudSave(); S.Y = null; toast("Uzildi"); render(); },
+  wSync: () => { S.wSync = !S.wSync; render(); },
+  syncConnectW: async () => { const W = S.W || {}; if (await connectSync(W.url, W.key)) { if (!DB.settings.onboarded) { DB.settings.onboarded = true; persist(); } S.wSync = false; S.screen = "home"; render(true); } },
+  start: () => { const W = S.W || {}; if (W.shop && W.shop.trim()) DB.settings.shop = W.shop.trim(); if (W.master != null) DB.settings.master = String(W.master).trim();
+    DB.settings.onboarded = true; persist(); haptic("success"); S.screen = "home"; S.stack = []; render(true); },
+  setTheme: v => { DB.settings.theme = v; persist(); applyTheme(); render(); },
+  rmPhoto: v => { DB.settings[v] = ""; persist(); render(); },
+  pinKey: v => { if (v === "⌫") S.pinBuf = S.pinBuf.slice(0,-1); else if (S.pinBuf.length < 4) S.pinBuf += v;
+    if (S.pinBuf.length === 4) { if (hashPin(S.pinBuf) === DB.settings.pin) { S.unlocked = true; haptic("success"); render(true); return; } haptic("error"); toast("PIN noto'g'ri"); S.pinBuf = ""; }
+    render(); }
+};
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-a]"); if (!el) return;
+  const fn = ACT[el.dataset.a]; if (!fn) return;
+  if (el.tagName !== "A") e.preventDefault();
+  haptic(); fn(el.dataset.v, el);
+});
+// Yozish paytida qayta chizmaymiz — faqat kerakli joy yangilanadi
+document.addEventListener("input", e => {
+  const el = e.target.closest("[data-f]"); if (!el) return;
+  const p = el.dataset.f.split("."), v = el.value;
+  if (p[0] === "W") { S.W[p[1]] = v; return; }
+  if (p[0] === "Y") { S.Y[p[1]] = v; return; }
+  if (p[0] === "cSearch") { S.cSearch = v; document.getElementById("clist").innerHTML = clientsList(); return; }
+  if (p[0] === "F" || p[0] === "A") { const P = p[0] === "F" ? S.F : S.A; P[p[1]] = v;
+    if (p[1] === "name") { const r = document.getElementById("pickRes"); if (r) r.innerHTML = pickResults(P, p[0]); }
+    if (p[0] === "F") vfRefresh(); return; }
+  if (p[0] === "Fi") { S.F.items[+p[1]][p[2]] = v; vfRefresh(); return; }
+  if (p[0] === "C") { S.C[p[1]] = v; return; }
+  if (p[0] === "P") { S.P[p[1]] = v; return; }
+  if (p[0] === "E") { S.E[p[1]] = v; return; }
+  if (p[0] === "D") { S.draft[p[1]] = v; return; }
+  if (p[0] === "Ds") { S.draft.services[+p[1]][p[2]] = v; return; }
+});
+function vfRefresh(){ const k = vfCalc(); const b = document.getElementById("vfBreak"); if (b) b.innerHTML = vfBreak(k); setMain(`Saqlash · ${money(k.total)}`, saveVisit); }
+applyTheme();
+render(true);
+if (syncOn()) pullSync(true);
+else cloudLoad(c => { if (c && c.url && c.key) { SYNC = { url: c.url, key: c.key }; saveSync(); pullSync(); } });
+</script>
+</body>
+</html>
