@@ -347,6 +347,19 @@ textarea.inp{height:auto;min-height:88px;padding:12px 16px;resize:vertical}
 @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
 .done h1{text-align:center;margin:0 0 6px;font-size:23px}
 .done p{text-align:center;color:var(--hint);margin:0 0 18px}
+.recrow{display:flex;gap:12px;overflow-x:auto;margin:0 -16px;padding:2px 16px 6px;scrollbar-width:none;scroll-snap-type:x mandatory}
+.recrow::-webkit-scrollbar{display:none}
+.rcard{flex:none;width:236px;background:var(--card);border-radius:22px;overflow:hidden;text-align:left;scroll-snap-align:start;position:relative}
+.rcard .cov{height:132px;background:linear-gradient(135deg,#F7894A,#9A4116);background-size:cover;background-position:center;display:grid;place-items:center;color:#fff;font-size:40px;font-weight:750;position:relative}
+.rcard .cov::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(10,5,2,.55))}
+.rcard .bd{padding:10px 12px 12px}
+.rcard b{display:block;font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcard .sub{font-size:12.5px;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rcard .meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.rbadge{position:absolute;top:10px;left:10px;z-index:1;font-size:11px;font-weight:750;border-radius:8px;padding:3px 8px;color:#fff;background:rgba(20,10,5,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.rbadge.ad{background:var(--accent)}
+.rbook{position:absolute;right:10px;top:96px;z-index:1;height:30px;border-radius:15px;padding:0 12px;background:#fff;color:#B84A18;font-size:12.5px;font-weight:750;display:flex;align-items:center}
+.chipx.ad{background:var(--accent);color:#fff}
 .skel{height:98px;border-radius:22px;background:linear-gradient(90deg,var(--card),var(--card2),var(--card));background-size:200% 100%;animation:sk 1.2s infinite}
 @keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
 </style>
@@ -447,7 +460,7 @@ async function api(action, data){
 }
 
 /* ---------- Holat ---------- */
-const S = { screen:"home", stack:[], q:"", loc: LS.get("mijoz_loc", null), list:[], loading:false, loaded:false,
+const S = { screen:"home", stack:[], q:"", rec:[], loc: LS.get("mijoz_loc", null), list:[], loading:false, loaded:false,
             favIds: new Set(), favList:[], my:[], myLoaded:false, master:null, sel:{ service:null, date:null, time:null, note:"" },
             slots:[], slotsKey:"", slotsLoading:false, au:null, startParam: IN_TG ? (tg.initDataUnsafe.start_param || "") : (new URLSearchParams(location.search).get("m") ? "m_" + new URLSearchParams(location.search).get("m") : "") };
 const TABS = ["home","bookings","favs","profile"];
@@ -458,7 +471,7 @@ function goBack(){ haptic(); S.screen = S.stack.pop() || "home"; render(true); }
 /* ---------- Ma'lumot yuklash ---------- */
 async function loadList(){
   S.loading = true; render();
-  try { const j = await api("search", Object.assign({ q: S.q }, S.loc || {})); if (j.ok) S.list = j.list; else toast(j.error); } catch(e){ toast("Internet xatosi"); }
+  try { const j = await api("search", Object.assign({ q: S.q }, S.loc || {})); if (j.ok) { S.list = j.list; S.rec = j.rec || []; } else toast(j.error); } catch(e){ toast("Internet xatosi"); }
   S.loading = false; S.loaded = true; render();
 }
 async function loadFavs(){ if (!loggedIn()) return; try { const j = await api("favs", S.loc || {}); if (j.ok) { S.favIds = new Set(j.ids); S.favList = j.list; render(); } } catch(e){} }
@@ -482,7 +495,7 @@ function getLocation(cb){
   viaBrowser();
 }
 async function openMaster(id){
-  S.master = S.list.concat(S.favList).find(m => m.id === id) || null;
+  S.master = S.list.concat(S.favList, S.rec).find(m => m.id === id) || null;
   S.sel = { service:null, date:null, time:null, note:"" }; S.slots = []; S.slotsKey = "";
   go("master");
   try { const j = await api("master", Object.assign({ id }, S.loc || {})); if (j.ok) { S.master = j.master;
@@ -494,11 +507,18 @@ function firstOpenDay(m){ for (let i = 0; i < 14; i++) { const d = addDays(today
 /* ---------- Umumiy bloklar ---------- */
 const empty = (t, p, btn, icon) => `<div class="empty fade"><div class="ei">${icon||I.scissors}</div><b>${esc(t)}</b><p>${esc(p)}</p>${btn||""}</div>`;
 const mph = (m, cls) => `<div class="mph ${cls||""}" style="${m.photo ? `background-image:url(${m.photo})` : avBg(m.name)}">${m.photo ? "" : esc(initials(m.name))}</div>`;
+function rcard(m){
+  const ph = m.photo || m.shopPhoto, lbl = m.tag === "ad" ? "Reklama" : m.tag === "top" ? "🔥 Ommabop" : "🆕 Yangi";
+  return `<button class="rcard" data-a="openMaster" data-v="${m.id}"><span class="rbadge ${m.tag === "ad" ? "ad" : ""}">${lbl}</span>
+    <div class="cov" style="${ph ? `background-image:url(${ph})` : avBg(m.name)}">${ph ? "" : esc(initials(m.name))}</div><span class="rbook">Yozilish</span>
+    <div class="bd"><b>${esc(m.name)}</b><div class="sub">${esc(m.shopName || m.address || "Mustaqil usta")}</div>
+    <div class="meta">${m.dist != null ? `<span class="chipx acc">📍 ${m.dist < 1 ? Math.round(m.dist*1000) + " m" : m.dist + " km"}</span>` : ""}${m.priceFrom ? `<span class="chipx">${fmt(m.priceFrom)} so'mdan</span>` : ""}</div></div></button>`;
+}
 function mcard(m){
   const fav = S.favIds.has(m.id);
   return `<div class="mcard fade"><button style="display:contents;text-align:left" data-a="openMaster" data-v="${m.id}">${mph(m)}
     <span class="grow"><b>${esc(m.name)}</b><span class="sub">${esc(m.shopName || m.address || "Mustaqil usta")}</span>
-    <span class="meta">${m.dist != null ? `<span class="chipx acc">📍 ${m.dist < 1 ? Math.round(m.dist*1000) + " m" : m.dist + " km"}</span>` : ""}${m.priceFrom ? `<span class="chipx">${fmt(m.priceFrom)} so'mdan</span>` : ""}<span class="chipx">${m.workStart}–${m.workEnd}</span></span></span></button>
+    <span class="meta">${m.ad ? `<span class="chipx ad">Reklama</span>` : ""}${m.dist != null ? `<span class="chipx acc">📍 ${m.dist < 1 ? Math.round(m.dist*1000) + " m" : m.dist + " km"}</span>` : ""}${m.priceFrom ? `<span class="chipx">${fmt(m.priceFrom)} so'mdan</span>` : ""}<span class="chipx">${m.workStart}–${m.workEnd}</span></span></span></button>
     <button class="heart ${fav?"on":""}" data-a="fav" data-v="${m.id}" aria-label="${fav?"Sevimlilardan olish":"Sevimlilarga qo'shish"}" aria-pressed="${fav}">${fav ? I.heartF : I.heart}</button></div>`;
 }
 const ST_LABEL = { pending:"Tasdiqlash kutilmoqda", confirmed:"Tasdiqlandi", rejected:"Rad etildi", cancelled:"Bekor qilindi", done:"Bajarildi", noshow:"Kelmadi", expired:"Javob berilmadi" };
@@ -522,9 +542,12 @@ function vHome(){
   ${next ? `<button class="banner" data-a="tab" data-v="bookings">${I.cal}<div class="grow"><b>${dWhen(next.date)}, ${next.time} — ${esc(next.master ? next.master.name : "")}</b><span>${esc(next.service)} · ${ST_LABEL[next.status]}</span></div>${I.right}</button>` : ""}
   ${!S.loc ? `<section class="hero" style="margin-top:12px"><div class="glow"></div><div class="lbl">Navbatsiz, qulay vaqtda</div><div class="big" style="font-size:26px">Yaqin sartaroshni toping</div>
     <div class="row2"><span class="pill">1 daqiqada yozilish</span><span class="pill">Botga eslatma</span></div><button class="cta" data-a="locate">${I.pin} Yaqinlarni ko'rsatish</button></section>` : ""}
+  ${S.rec.length ? `<h2 class="sec">⭐ Tavsiya etamiz <small>${S.rec.length} ta</small></h2>
+  <div class="recrow">${S.rec.map(rcard).join("")}</div>` : ""}
   ${S.favList.length ? `<h2 class="sec">Sevimli ustalarim <button data-a="tab" data-v="favs">Hammasi</button></h2>
   <div class="favrow">${S.favList.map(m => `<button class="fav" data-a="openMaster" data-v="${m.id}">${mph(m)}<span>${esc(m.name)}</span></button>`).join("")}</div>` : ""}
-  <h2 class="sec">${S.loc ? "Yaqin sartaroshlar" : "Sartaroshlar"} <small>${S.loaded ? S.list.length + " ta" : ""}</small></h2>
+  ${S.loc && S.loaded && !S.q && !S.list.some(m => m.dist != null && m.dist <= 15) ? `<div class="banner">${I.pin}<div class="grow"><b>Yaqin atrofda sartarosh topilmadi</b><span>Tavsiya etilgan ustalardan tanlang yoki shahar nomini qidiring</span></div></div>` : ""}
+  <h2 class="sec">${S.loc ? (S.list.some(m => m.dist != null && m.dist <= 15) ? "Yaqin sartaroshlar" : "Boshqa sartaroshlar") : "Sartaroshlar"} <small>${S.loaded ? S.list.length + " ta" : ""}</small></h2>
   ${S.loading && !S.list.length ? `<div class="mlist"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>`
     : S.list.length ? `<div class="mlist">${S.list.map(mcard).join("")}</div>`
     : empty(S.q ? "Hech narsa topilmadi" : "Hozircha sartarosh yo'q", S.q ? "Boshqa so'z bilan qidirib ko'ring." : "Tez orada shu yerda sartaroshlar paydo bo'ladi.")}

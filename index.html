@@ -311,7 +311,8 @@ textarea.inp{height:auto;min-height:88px;padding:12px 16px;resize:vertical}
 /* ============ PLATFORMA (v0.3) — bir marta to'ldiring ============ */
 const PLATFORM = {
   API_URL: "https://script.google.com/macros/s/AKfycbwc-75LQ4oS_w1kKtrZomN5vCqbC2oDjtzUt7SkTse-aQbuAlJzuZxexvlik_gyJ_2EKg/exec",      // Platform.gs Web app havolasi: https://script.google.com/macros/s/…/exec
-  MIJOZ_BOT: ""     // mijoz botining username'i (@ siz), masalan: "sartarosh_top_bot"
+  MIJOZ_BOT: "",    // mijoz botining username'i (@ siz), masalan: "sartarosh_top_bot"
+  ADMIN: ""         // reklama uchun bog'lanish — sizning Telegram username'ingiz (@ siz)
 };
 
 /* ---------- Telegram ---------- */
@@ -1324,6 +1325,11 @@ function vProfile(){
     ${m.owner ? "" : `<button class="ib" style="width:36px;height:36px;background:var(--fill)" data-a="rmMaster" data-v="${m.id}" aria-label="Chiqarish">${I.x}</button>`}</div>`).join("")}</div>
   <div class="card" style="margin-top:10px"><label class="field"><span>Usta qo'shish — uning telefon raqami (u avval usta botida ro'yxatdan o'tgan bo'lsin)</span><input class="inp" data-f="pf.addPhone" value="${esc(F.addPhone)}" type="tel" inputmode="tel" placeholder="+998 90 123 45 67"></label>
     <button class="btn acc block" style="margin-top:10px" data-a="addMaster">Qo'shish</button></div>` : ""}
+  <h2 class="sec">⭐ Tavsiyalarda chiqish</h2>
+  <div class="card">${U.ad ? `<div class="row" style="border:0"><span class="k">Reklama faol</span><span class="v pos">${U.ad.until ? dLabel(U.ad.until) + " gacha" : "muddatsiz"}</span></div>
+    <p class="note" style="margin:0">Profilingiz barcha mijozlarga — qayerda bo'lishidan qat'i nazar — "⭐ Tavsiya etamiz" bo'limining boshida ko'rsatiladi.</p>`
+    : `<p class="note" style="margin:0 0 10px">Profilingiz yaqin atrofdagi mijozlardan tashqari <b>hamma mijozlarga</b> "⭐ Tavsiya etamiz" bo'limining boshida ko'rinsin. Ko'p mijoz qabul qilgan ustalar u yerga avtomatik ham chiqadi.</p>
+    ${PLATFORM.ADMIN ? `<button class="btn acc block" data-a="adContact">Reklama berish</button>` : ""}`}</div>
   ${PLATFORM.MIJOZ_BOT ? `<button class="btn card block" style="margin-top:16px" data-a="shareMe">${I.send} Mijozlarga havolamni ulashish</button>` : ""}`;
 }
 function getLocation(cb){
@@ -1489,6 +1495,7 @@ const ACT = {
     toast("Tekshirilmoqda…"); onAuth(await api("login", { phone: d, password: A.pass, app: "usta" }).catch(() => ({ error: "Internet xatosi" }))); },
   logout: async () => { if (!(await ask("Hisobdan chiqilsinmi? Telefondagi ma'lumotlar qoladi."))) return;
     try { await api("logout"); } catch(e){} AUTH = {}; saveAuth(); S.on = { list:[], pending:0 }; SYNC.pending = false; saveSync(); toast("Chiqdingiz"); tab("home"); },
+  adContact: () => openLink(`https://t.me/${PLATFORM.ADMIN}?text=${encodeURIComponent("Assalomu alaykum! Usta Kassa'da reklama bermoqchiman. Raqamim: " + showPhone(AUTH.user.phone))}`),
   onRefresh: () => { toast("Yangilanmoqda…"); refreshOnline(); },
   onSet: async (v, el) => { const st = el.dataset.s;
     if ((st === "rejected" || st === "cancelled") && !(await ask(st === "rejected" ? "Bron rad etilsinmi? Mijozga xabar boradi." : "Bron bekor qilinsinmi? Mijozga xabar boradi."))) return;

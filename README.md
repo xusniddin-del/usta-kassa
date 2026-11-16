@@ -78,6 +78,20 @@ Usta "Mijozlarga havolamni ulashish" tugmasini bossa, mijoz to'g'ridan-to'g'ri o
 
 Jadvalning **Users / Shops / Bookings** varaqlarida hamma narsani ko'rib turasiz.
 
+## ⭐ Reklama va tavsiyalar
+Mijoz ilovasining bosh sahifasida **"⭐ Tavsiya etamiz"** bo'limi bor. U mijoz qayerda bo'lishidan qat'i nazar ko'rinadi:
+1. **Reklama**: "Usta Platforma" jadvalidagi **Reklama** varag'iga qator qo'shasiz:
+   - `phone`: ustaning raqami (`998901234567`);
+   - `until`: qaysi kungacha (`2026-12-31`);
+   - `title`: izoh.
+
+   Bu usta "Reklama" belgisi bilan birinchi chiqadi. Bir nechta reklama bo'lsa, ular har soatda navbat bilan almashadi.
+2. **🔥 Ommabop**: oxirgi 60 kunda eng ko'p mijoz qabul qilgan ustalar avtomatik chiqadi.
+3. **🆕 Yangi**: yangi ro'yxatdan o'tgan ustalar ham avtomatik chiqadi.
+
+Yaqin atrofda (15 km) sartarosh bo'lmasa, mijozga tavsiya etilganlardan tanlash taklif qilinadi.
+Usta ilovasidagi **Profil → ⭐ Tavsiyalarda chiqish** kartochkasida reklama holati ko'rinadi. `index.html` dagi `PLATFORM.ADMIN` ga Telegram username'ingizni yozsangiz, ustalar sizga "Reklama berish" tugmasi orqali yozadi.
+
 ## Bilib qo'ying
 - Google'ning bepul limitlari shahar miqyosidagi bir necha yuz usta va minglab mijozga bemalol yetadi.
 - Server kodini o'zgartirsangiz: **Deploy → Manage deployments → ✏️ → New version** qiling. Havola o'zgarmaydi.

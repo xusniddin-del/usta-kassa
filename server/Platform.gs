@@ -27,7 +27,8 @@ const TABLES = {
   Bookings: ["id", "masterId", "clientId", "clientName", "clientPhone", "service", "price", "duration", "date", "time", "status", "note", "created", "r1", "r2", "msgId"],
   Favs:     ["clientId", "masterId", "created"],
   Sessions: ["token", "userId", "created"],
-  Contacts: ["tgId", "phone", "at"]
+  Contacts: ["tgId", "phone", "at"],
+  Reklama:  ["phone", "until", "title", "created"]   // siz to'ldirasiz: usta raqami (998...), qaysi kungacha (YYYY-MM-DD), izoh
 };
 const _tcache = {};
 function T(name) {
@@ -172,10 +173,28 @@ function newSession(u) {
   T("Sessions").add({ token, userId: u.id, created: new Date().toISOString() });
   return token;
 }
+/* ---------- Reklama va tavsiyalar ---------- */
+function adFor(phone) {
+  const r = T("Reklama").find(x => normPhone(x.phone) === phone && (!x.until || String(x.until).slice(0, 10) >= today()));
+  return r ? { until: String(r.until || "").slice(0, 10) } : null;
+}
+function recommended(all, lat, lng) {
+  const td = today(), from = addDays(td, -60), ads = {}, score = {};
+  T("Reklama").rows.forEach(r => { if (!r.until || String(r.until).slice(0, 10) >= td) ads[normPhone(r.phone)] = 1; });
+  T("Bookings").rows.forEach(b => { if ((b.status === "done" || b.status === "confirmed") && b.date >= from) score[b.masterId] = (score[b.masterId] || 0) + 1; });
+  const seed = Math.floor(Date.now() / 36e5);   // har soatda reklama tartibi almashadi — hammaga navbat
+  const rot = id => { let h = seed; for (const c of id) h = (h * 31 + c.charCodeAt(0)) | 0; return h; };
+  const ad = all.filter(m => ads[m.phone]).sort((a, b) => rot(a.id) - rot(b.id)).map(m => Object.assign({}, m, { ad: true, tag: "ad" }));
+  const used = {}; ad.forEach(m => used[m.id] = 1);
+  const top = all.filter(m => !used[m.id] && score[m.id]).sort((a, b) => score[b.id] - score[a.id]).slice(0, 6).map(m => Object.assign({}, m, { tag: "top", visits: score[m.id] }));
+  top.forEach(m => used[m.id] = 1);
+  const fresh = all.filter(m => !used[m.id]).sort((a, b) => String(b.created).localeCompare(String(a.created))).slice(0, Math.max(0, 8 - ad.length - top.length)).map(m => Object.assign({}, m, { tag: "new" }));
+  return ad.concat(top, fresh).slice(0, 12);
+}
 function pubUser(u) {
   const shop = u.shopId ? T("Shops").find(s => s.id === u.shopId) : null;
   return { id: u.id, role: u.role, phone: u.phone, name: u.name, tg: !!u.tgId, shopId: u.shopId || "", profile: parse(u.profile),
-           shop: shop ? shopView(shop) : null, isOwner: !!(shop && shop.ownerId === u.id) };
+           shop: shop ? shopView(shop) : null, isOwner: !!(shop && shop.ownerId === u.id), ad: adFor(u.phone) };
 }
 const shopView = s => ({ id: s.id, name: s.name, address: s.address, lat: Number(s.lat) || null, lng: Number(s.lng) || null, photo: s.photo, phone: s.phone, ownerId: s.ownerId });
 function masterView(u, lat, lng) {
@@ -286,7 +305,12 @@ const PUBLIC = {
     if (q) list = list.filter(m => (m.name + " " + m.shopName + " " + m.address + " " + m.services.map(s => s.name).join(" ")).toLowerCase().indexOf(q) >= 0);
     if (b.ids) { const ids = [].concat(b.ids); list = list.filter(m => ids.indexOf(m.id) >= 0); }
     list.sort((x, y) => (x.dist == null ? 1e9 : x.dist) - (y.dist == null ? 1e9 : y.dist) || x.name.localeCompare(y.name));
-    return { ok: true, list: list.slice(0, 60) };
+    const ads = {}; T("Reklama").rows.forEach(r => { if (!r.until || String(r.until).slice(0, 10) >= today()) ads[normPhone(r.phone)] = 1; });
+    list.forEach(m => { if (ads[m.phone]) m.ad = true; });
+    const all = T("Users").filter(u => isMaster(u) && parse(u.profile).active).map(u => Object.assign(masterView(u, lat, lng), { created: u.created })).filter(m => m.services.length);
+    const rec = b.ids || q ? [] : recommended(all, lat, lng);
+    list.forEach(m => delete m.created); rec.forEach(m => delete m.created);
+    return { ok: true, list: list.slice(0, 60), rec };
   },
   master(b) {
     const u = T("Users").find(x => x.id === b.id && isMaster(x));
