@@ -37,9 +37,9 @@ function T(name) {
   let sh = ss.getSheetByName(name);
   if (!sh) {
     sh = ss.insertSheet(name);
-    sh.getRange(1, 1, sh.getMaxRows(), head.length).setNumberFormat("@");   // hammasi matn bo'lib qolsin
-    sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight("bold").setBackground("#F47B3C").setFontColor("#FFFFFF");
-    sh.setFrozenRows(1);
+    try { sh.getRange(1, 1, sh.getMaxRows(), head.length).setNumberFormat("@"); } catch (e) {}   // hammasi matn bo'lib qolsin
+    sh.getRange(1, 1, 1, head.length).setValues([head]);
+    try { sh.getRange(1, 1, 1, head.length).setFontWeight("bold").setBackground("#F47B3C").setFontColor("#FFFFFF"); sh.setFrozenRows(1); } catch (e) {}
   }
   const n = sh.getLastRow() - 1;
   const vals = n > 0 ? sh.getRange(2, 1, n, head.length).getValues() : [];
@@ -50,7 +50,8 @@ function T(name) {
     filter: f => rows.filter(f),
     add(o) {
       const r = sh.getLastRow() + 1;
-      sh.getRange(r, 1, 1, head.length).setNumberFormat("@").setValues([head.map(h => o[h] == null ? "" : String(o[h]))]);
+      try { sh.getRange(r, 1, 1, head.length).setNumberFormat("@"); } catch (e) {}
+      sh.getRange(r, 1, 1, head.length).setValues([head.map(h => o[h] == null ? "" : String(o[h]))]);
       o._r = r; rows.push(o); return o;
     },
     save(o) { sh.getRange(o._r, 1, 1, head.length).setValues([head.map(h => o[h] == null ? "" : String(o[h]))]); return o; },

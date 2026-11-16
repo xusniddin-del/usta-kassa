@@ -113,15 +113,19 @@ function writeSheets_(db) {
 }
 
 function put_(title, head, rows, moneyCols) {
+  try { putSheet_(title, head, rows, moneyCols); } catch (e) { console.warn(title + ": " + e); }
+}
+function putSheet_(title, head, rows, moneyCols) {
   const ss = SpreadsheetApp.getActive();
   let sh = ss.getSheetByName(title);
   if (!sh) sh = ss.insertSheet(title);
   sh.clearContents();
   const data = [head].concat(rows);
   sh.getRange(1, 1, data.length, head.length).setValues(data);
-  sh.getRange(1, 1, 1, head.length).setFontWeight("bold").setBackground("#F47B3C").setFontColor("#FFFFFF");
-  sh.setFrozenRows(1);
-  if (rows.length) moneyCols.forEach(c => sh.getRange(2, c, rows.length, 1).setNumberFormat("#,##0"));
+  // Bezak — Google "Table" (turlangan ustun) bo'lsa, ruxsat bermaydi; unda shunchaki o'tkazib yuboramiz
+  try { sh.getRange(1, 1, 1, head.length).setFontWeight("bold").setBackground("#F47B3C").setFontColor("#FFFFFF"); } catch (e) {}
+  try { sh.setFrozenRows(1); } catch (e) {}
+  if (rows.length) moneyCols.forEach(c => { try { sh.getRange(2, c, rows.length, 1).setNumberFormat("#,##0"); } catch (e) {} });
   const extra = sh.getMaxRows() - data.length;
-  if (extra > 50) sh.deleteRows(data.length + 1, extra - 50);
+  if (extra > 50) { try { sh.deleteRows(data.length + 1, extra - 50); } catch (e) {} }
 }
