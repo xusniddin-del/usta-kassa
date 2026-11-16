@@ -381,8 +381,8 @@ textarea.inp{height:auto;min-height:88px;padding:12px 16px;resize:vertical}
 /* ============ PLATFORMA — bir marta to'ldiring ============ */
 const PLATFORM = {
   API_URL: "https://script.google.com/macros/s/AKfycbwc-75LQ4oS_w1kKtrZomN5vCqbC2oDjtzUt7SkTse-aQbuAlJzuZxexvlik_gyJ_2EKg/exec",      // Platform.gs Web app havolasi: https://script.google.com/macros/s/…/exec
-  USTA_BOT: ""      // usta botining username'i (@ siz) — "Siz sartaroshmisiz?" havolasi uchun
-  , MIJOZ_BOT: ""   // shu (mijoz) botning username'i — usta sahifasini ulashish havolasi uchun
+  USTA_BOT: "kassabarber_bot"      // usta botining username'i (@ siz) — "Siz sartaroshmisiz?" havolasi uchun
+  , MIJOZ_BOT: "marg_sartarosh_bot"   // shu (mijoz) botning username'i — usta sahifasini ulashish havolasi uchun
 };
 
 /* ---------- Telegram ---------- */
@@ -550,7 +550,7 @@ function vHome(){
   <h2 class="sec">${S.loc ? (S.list.some(m => m.dist != null && m.dist <= 15) ? "Yaqin sartaroshlar" : "Boshqa sartaroshlar") : "Sartaroshlar"} <small>${S.loaded ? S.list.length + " ta" : ""}</small></h2>
   ${S.loading && !S.list.length ? `<div class="mlist"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>`
     : S.list.length ? `<div class="mlist">${S.list.map(mcard).join("")}</div>`
-    : empty(S.q ? "Hech narsa topilmadi" : "Hozircha sartarosh yo'q", S.q ? "Boshqa so'z bilan qidirib ko'ring." : "Tez orada shu yerda sartaroshlar paydo bo'ladi.")}
+    : empty(S.q ? "Hech narsa topilmadi" : "Hozircha sartarosh yo'q", S.q ? "Boshqa so'z bilan qidirib ko'ring." : "Ustalar ro'yxatdan o'tib, profilini yoqishi bilan shu yerda va «⭐ Tavsiya etamiz» bo'limida chiqadi.")}
   ${PLATFORM.USTA_BOT ? `<button class="btn card block" style="margin-top:16px" data-a="beMaster">${I.scissors} Siz sartaroshmisiz? Ro'yxatdan o'ting</button>` : ""}`;
 }
 
