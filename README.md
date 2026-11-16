@@ -1,42 +1,84 @@
-# Usta Kassa ✂️
+# Usta Kassa v0.3 — sartaroshlar va mijozlar platformasi ✂️
 
-Sartarosh uchun Telegram Mini App: bugungi kassa (naqd, karta, nasiya, chegirma), xarajatlar, qarzdorlar, mijozlar bazasi, eslatmalar, navbatlar va oylik hisobot.
-Ma'lumotlar telefonda saqlanadi va avtomatik **Google Sheets**'ga yoziladi.
+Ikkita Telegram bot va ikkita Mini App bitta serverga (Google Apps Script) ulangan:
 
-## Fayllar
+| | Kim uchun | Fayl |
+|---|---|---|
+| **Usta boti** | sartarosh / sartaroshxona egasi | `index.html` |
+| **Mijoz boti** | mijozlar | `mijoz.html` |
+| **Server** | ikkala bot, baza, eslatmalar | `server/Platform.gs` |
 
-| Fayl | Nima |
-|---|---|
-| `index.html` | Mini App (GitHub Pages orqali ochiladi) |
-| `google/Code.gs` | Google Sheets uchun Apps Script kodi |
+**Nima o'zgardi (v0.3):**
+- **Ro'yxatdan o'tish va kirish.** Raqam Telegram orqali tasdiqlanadi, keyin parol qo'yiladi. Ro'yxatdan o'tgach, kirish oynasida telefon raqam va parol bilan kiriladi. Eski foydalanuvchilar uchun ro'yxatdan o'tish ixtiyoriy.
+- **Mijozlar uchun:** yaqin sartaroshlarni topish (masofa bilan), qidirish, sevimlilar, bo'sh vaqtni tanlab yozilish, bronlarim.
+- **Bildirishnomalar:**
+  - mijoz yozilsa, usta botiga "✅ Tasdiqlash / ❌ Rad etish" tugmali xabar keladi;
+  - javob mijoz botiga boradi;
+  - tashrifdan oldin mijozga eslatma ketadi: kechqurun va 2 soat qolganda.
+- **Sartaroshxona egasi** o'z ustalarini telefon raqami orqali qo'shadi. Ustalar sartaroshxonaning manzili va joylashuvini oladi.
+- **Kassa ma'lumotlari** serverda saqlanadi. Boshqa telefondan kirsangiz, hammasi tiklanadi.
 
-## 1. Google Sheets'ni ulash (5 daqiqa)
+---
 
-1. [sheets.new](https://sheets.new) — yangi jadval oching, nom bering (masalan, *Usta Kassa*).
-2. **Kengaytmalar → Apps Script**. Ochilgan oynadagi kodni o'chirib, `google/Code.gs` ichidagisini joylang.
-3. Saqlang (💾). Keyin ⚙️ **Project Settings → Script Properties → Add script property**:
-   - *Property:* `KALIT`
-   - *Value:* o'zingiz o'ylab topgan maxfiy so'z (masalan, `usta-mrg-7421`)
-   → **Save script properties**.
-4. **Joylashtirish → Yangi joylashtirish** → ⚙️ **Veb-ilova**:
-   - *Kim nomidan bajariladi:* **Men**
-   - *Kimga ruxsat:* **Hamma (Anyone)**
-5. **Joylashtirish** → Google ruxsat so'raydi → **Ruxsat berish** (agar "tasdiqlanmagan ilova" desa: *Advanced → Go to …*).
-6. Berilgan `https://script.google.com/macros/s/…/exec` havolani nusxalang.
-7. Ilovada: **Yana → Sozlamalar → Google Sheets** → havola va kalitni kiriting → **Ulash**.
+## O'rnatish (bir marta, ~15 daqiqa)
 
-Shundan keyin jadvalda varaqlar paydo bo'ladi: *Tashriflar, Mijozlar, Qarzdorlar, Qarz to'lovlari, Xarajatlar, Navbatlar, Oylik hisobot*.
+### 1. Mijoz botini yarating
+@BotFather → `/newbot` → nom va username bering (masalan `sartarosh_top_bot`). **Tokenni** saqlab qo'ying.
+Usta boti sizda allaqachon bor, uning tokeni ham kerak bo'ladi.
 
-> Kodni o'zgartirsangiz: **Joylashtirish → Joylashtirishlarni boshqarish → ✏️ → Versiya: Yangi** — havola o'zgarmaydi.
+### 2. Serverni o'rnating (Google)
+1. [sheets.new](https://sheets.new) → yangi jadval, nomi: **Usta Platforma**. Bu umumiy baza bo'ladi.
+2. **Kengaytmalar → Apps Script** → `server/Platform.gs` ichidagi kodni to'liq joylang → 💾.
+3. **Deploy → New deployment → Web app**:
+   - *Execute as:* **Me**
+   - *Who has access:* **Anyone**
 
-## 2. Botga ulash
+   **Deploy** ni bosing → `https://script.google.com/macros/s/…/exec` havolasini nusxalang.
+4. ⚙️ **Project Settings → Script Properties** ga 5 ta qator qo'shing:
 
-@BotFather → `/mybots` → botingiz → **Bot Settings → Menu Button** → GitHub Pages havolasini kiriting (masalan `https://xusniddin-del.github.io/usta-kassa/`) → tugma nomi: *Kassa*.
+   | Property | Value |
+   |---|---|
+   | `USTA_BOT_TOKEN` | usta botining tokeni |
+   | `MIJOZ_BOT_TOKEN` | mijoz botining tokeni |
+   | `WEB_APP_URL` | 3-qadamdagi `…/exec` havola |
+   | `USTA_APP_URL` | `https://xusniddin-del.github.io/usta-kassa/` |
+   | `MIJOZ_APP_URL` | `https://xusniddin-del.github.io/usta-kassa/mijoz.html` |
 
-## Eslatmalar
+5. Editor'da yuqoridagi ro'yxatdan **setup** funksiyasini tanlang → **▶ Run** → ruxsat bering ("Advanced → Go to…").
+   Execution log'da hammasi ✅ bo'lishi kerak. Shu bilan ikkala bot ulanadi, menyu tugmalari qo'yiladi va har 15 daqiqalik eslatma ishga tushadi.
 
-- Boshqa telefondan Telegram orqali kirsangiz, Google Sheets ulanishi o'zi tiklanadi (Telegram CloudStorage).
-- Internet bo'lmasa ham ishlaydi — ulanganda yuboradi.
-- Ikki telefonda bir vaqtda yozilsa, yozuvlar birlashtiriladi.
-- Rasmlar va PIN-kod faqat telefonda qoladi, jadvalga yuborilmaydi.
-- Kalitni hech kimga bermang: havola va kalitni bilgan odam ma'lumotlarni o'qiy oladi.
+> Tokenlar faqat Script Properties'da turadi. GitHub'ga ham, ilovalarga ham yozilmaydi.
+
+### 3. Ilovalarni sozlang
+`index.html` va `mijoz.html` fayllarining boshida `PLATFORM` bloki bor. Ikkalasiga bir xil `API_URL` (`…/exec`) va bot username'larini yozing:
+
+```js
+const PLATFORM = {
+  API_URL: "https://script.google.com/macros/s/…/exec",
+  MIJOZ_BOT: "sartarosh_top_bot"
+};
+```
+
+### 4. GitHub'ga yuklang
+Repo'ga `index.html` (eskisining ustidan), `mijoz.html` va `server/` papkasini yuklang → **Commit changes**.
+
+### 5. (Ixtiyoriy) Usta havolasi
+Usta "Mijozlarga havolamni ulashish" tugmasini bossa, mijoz to'g'ridan-to'g'ri o'sha ustaning sahifasiga tushadi. Buning uchun:
+@BotFather → mijoz boti → **Bot Settings → Configure Mini App → Enable** → `mijoz.html` havolasi.
+
+---
+
+## Qanday ishlaydi
+
+1. **Usta** usta botini ochadi → **Ro'yxatdan o'tish** → 📱 raqamni ulashadi → ism va parol yozadi → **Kirish**.
+2. **Yana → Profil** bo'limini to'ldiradi: rasm, manzil, 📍 joylashuv, ish vaqti, xizmatlar va narxlar. Keyin **"Mijozlar botida ko'rinish: Yoqilgan"** ni tanlaydi.
+3. **Mijoz** mijoz botini ochadi → ro'yxatdan o'tadi → 📍 bilan yaqin sartaroshni topadi → xizmat, sana va vaqtni tanlaydi → **Yozilish**.
+4. Usta botiga xabar keladi → **✅ Tasdiqlash** → mijozga "Broningiz tasdiqlandi" xabari boradi.
+5. Mijoz kelganda usta ilovada **Onlayn bronlar → Keldi** ni bosadi. Tashrif kassaga yoziladi va mijozga "Rahmat" xabari ketadi.
+
+Jadvalning **Users / Shops / Bookings** varaqlarida hamma narsani ko'rib turasiz.
+
+## Bilib qo'ying
+- Google'ning bepul limitlari shahar miqyosidagi bir necha yuz usta va minglab mijozga bemalol yetadi.
+- Server kodini o'zgartirsangiz: **Deploy → Manage deployments → ✏️ → New version** qiling. Havola o'zgarmaydi.
+- Eski `google/Code.gs` (shaxsiy jadval) endi kerak emas. Usta platformaga kirsa, kassasi serverda saqlanadi.

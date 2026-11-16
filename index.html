@@ -262,6 +262,31 @@ textarea.inp{height:auto;min-height:88px;padding:12px 16px;resize:vertical}
 .pad{display:grid;grid-template-columns:repeat(3,74px);gap:16px 22px}
 .pad button{height:74px;border-radius:50%;background:rgba(255,255,255,.1);font-size:28px;font-weight:500;color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 
+/* ---- v0.3: kirish, onlayn bronlar, profil ---- */
+.wel.auth{justify-content:flex-start;overflow-y:auto;padding-top:0}
+.wel-body{margin-top:auto;padding-top:72px;position:relative;z-index:1}
+.wel-art{pointer-events:none}
+.wskip{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;z-index:3;color:#fff;background:rgba(255,255,255,.14);border-radius:18px;padding:0 14px;height:36px;font-size:14px;font-weight:600}
+.okph{display:flex;align-items:center;gap:10px;background:rgba(91,214,154,.16);color:#8BE8BA;border-radius:16px;padding:12px 14px;font-weight:600;margin-top:4px}
+.wel .seg{background:rgba(255,255,255,.08)}
+.wel .seg button{color:rgba(255,255,255,.72)}
+.wel .seg button.on{color:#fff}
+.wel .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);width:100%;min-height:52px;border-radius:26px}
+.wel .note{color:rgba(255,255,255,.65)}
+.step{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7);margin:16px 4px 8px}
+.step i{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-style:normal;font-weight:700;font-size:12px;display:grid;place-items:center}
+.bk{background:var(--card);border-radius:20px;padding:14px}
+.bk-h{display:flex;gap:12px;align-items:center}
+.bk-h .grow{flex:1;min-width:0}
+.bk-h b{display:block}
+.bk-h small{color:var(--hint);font-size:13px}
+.bk .btns{margin-top:12px}
+.st{font-size:11.5px;font-weight:700;border-radius:7px;padding:3px 8px;white-space:nowrap}
+.st.pending{background:var(--amber-soft);color:var(--amber)} .st.confirmed{background:var(--green-soft);color:var(--green)}
+.st.rejected,.st.cancelled,.st.noshow,.st.expired{background:var(--red-soft);color:var(--red)} .st.done{background:var(--blue-soft);color:var(--blue)}
+.locbox{display:flex;align-items:center;gap:10px;background:var(--fill);border-radius:16px;padding:10px 12px;margin-top:10px;font-size:14px}
+.locbox .grow{flex:1;min-width:0}
+.pphoto{width:84px;height:84px;border-radius:24px;background:linear-gradient(135deg,#F7894A,#B84A18);background-size:cover;background-position:center;display:grid;place-items:center;color:#fff;font-size:28px;font-weight:700;flex:none}
 .toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-16px);background:rgba(20,12,6,.92);color:#fff;padding:12px 18px;border-radius:16px;font-size:14px;opacity:0;transition:.2s;z-index:60;pointer-events:none;max-width:86%;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .muted{color:var(--hint)}
@@ -282,6 +307,12 @@ textarea.inp{height:auto;min-height:88px;padding:12px 16px;resize:vertical}
    USTA KASSA — sartarosh uchun kassa, mijozlar bazasi va hisobot
    Barcha ma'lumotlar shu telefonda (localStorage) saqlanadi.
    ========================================================= */
+
+/* ============ PLATFORMA (v0.3) — bir marta to'ldiring ============ */
+const PLATFORM = {
+  API_URL: "https://script.google.com/macros/s/AKfycbwc-75LQ4oS_w1kKtrZomN5vCqbC2oDjtzUt7SkTse-aQbuAlJzuZxexvlik_gyJ_2EKg/exec",      // Platform.gs Web app havolasi: https://script.google.com/macros/s/…/exec
+  MIJOZ_BOT: ""     // mijoz botining username'i (@ siz), masalan: "sartarosh_top_bot"
+};
 
 /* ---------- Telegram ---------- */
 const tg = window.Telegram && window.Telegram.WebApp;
@@ -358,17 +389,34 @@ let DB = loadDB();
 function saveLocal(){ try { localStorage.setItem(DB_KEY, JSON.stringify(DB)); } catch(e){ toast("Xotira to'ldi — zaxira nusxa oling"); } }
 function persist(){ DB.updatedAt = Date.now(); saveLocal(); scheduleSync(); }
 
+/* ---------- Platforma: hisob (telefon + parol) va API ---------- */
+const AUTH_KEY = "usta_auth_v1";
+let AUTH = (() => { try { return JSON.parse(localStorage.getItem(AUTH_KEY)) || {}; } catch(e){ return {}; } })();
+const saveAuth = () => { try { localStorage.setItem(AUTH_KEY, JSON.stringify(AUTH)); } catch(e){} };
+const PLAT = () => !!PLATFORM.API_URL;
+const loggedIn = () => !!(PLAT() && AUTH.token);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const showPhone = d => { d = String(d||"").replace(/\D/g,""); return d.length === 12 ? `+${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8,10)} ${d.slice(10)}` : (d ? "+"+d : ""); };
+async function api(action, data){
+  const r = await fetch(PLATFORM.API_URL, { method:"POST", body: JSON.stringify(Object.assign({ action, token: AUTH.token || "", initData: IN_TG ? tg.initData : "" }, data || {})) });
+  const j = await r.json();
+  if (j && j.error === "auth") { AUTH = {}; saveAuth(); toast("Qaytadan kiring"); render(); }
+  return j;
+}
+
 /* ---------- Google Sheets sinxronlash ---------- */
 // Har bir o'zgarish Google Sheets'ga yuboriladi; ilova ochilganda eng yangi nusxa olinadi.
 const SYNC_KEY = "usta_sync_v1";
 let SYNC = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; } catch(e){ return {}; } })();
 const saveSync = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(SYNC)); } catch(e){} };
-const syncOn = () => !!(SYNC.url && SYNC.key);
+const platSync = () => loggedIn() && !(SYNC.url && SYNC.key);   // kirgan bo'lsa — kassa platformada saqlanadi
+const syncOn = () => !!(SYNC.url && SYNC.key) || platSync();
 let syncTimer = null, syncBusy = false;
 const COLLS = ["clients","visits","payments","expenses","appts"];
 function syncPayload(){ const st = Object.assign({}, DB.settings); delete st.photo; delete st.mphoto; delete st.pin;
   const o = { settings: st }; COLLS.forEach(k => o[k] = DB[k]); return o; }
 async function callSheet(body, url, key){
+  if (!url && platSync()) { const { action: a, ...rest } = body; return api("kassa_" + a, rest); }
   const r = await fetch(url || SYNC.url, { method:"POST", body: JSON.stringify(Object.assign({ key: key || SYNC.key }, body)) });
   return await r.json();
 }
@@ -472,7 +520,7 @@ const tomorrowApptsToRemind = () => apptsOn(addDays(today(),1)).filter(a => !a.r
 const remindCount = () => dueClients().length + tomorrowApptsToRemind().length;
 
 /* ---------- Holat ---------- */
-const S = { screen:"home", stack:[], day:today(), month:today().slice(0,7), expMonth:today().slice(0,7),
+const S = { on:{ list:[], pending:0 }, au:null, showAuth:false, pf:null, screen:"home", stack:[], day:today(), month:today().slice(0,7), expMonth:today().slice(0,7),
             cSearch:"", cFilter:"all", clientId:null, F:null, E:null, A:null, C:null, P:null, draft:null,
             unlocked: !DB.settings.pin, pinBuf:"" };
 const TABS = ["home","clients","debts","report","more"];
@@ -561,7 +609,7 @@ function payTags(v){
 }
 function tabbar(){
   if (!TABS.includes(S.screen)) return "";
-  const debtors = DB.clients.filter(c => clientDebt(c.id) > 0).length, rc = remindCount();
+  const debtors = DB.clients.filter(c => clientDebt(c.id) > 0).length, rc = remindCount() + (loggedIn() ? (S.on.pending||0) : 0);
   const items = [["home","Bugun",I.home],["clients","Mijozlar",I.users],["debts","Qarzlar",I.wallet,debtors],["report","Hisobot",I.chart],["more","Yana",I.grid,rc]];
   return `<nav class="pnav noprint" aria-label="Menyu">${items.map(([id,l,i,b]) => { const on = S.screen === id;
     return `<button data-a="tab" data-v="${id}" class="${on?"on":""}" aria-label="${l}"><span class="ni">${i}</span>${on ? `<span>${l}</span>` : ""}${b && !on ? `<span class="dot">${b}</span>` : ""}</button>`; }).join("")}</nav>`;
@@ -575,10 +623,13 @@ function vHome(){
   const d = S.day, T = totals(x => x === d), isToday = d === today();
   const list = T.V.slice().sort((a,b)=>b.time.localeCompare(a.time));
   const appts = apptsOn(d).filter(a => !a.done);
+  const onToday = loggedIn() ? S.on.list.filter(b => b.date === d && (b.status === "confirmed" || b.status === "pending")) : [];
   const rc = remindCount(), dim = daysInMonth(today().slice(0,7)), dom = new Date().getDate();
   const strip = Array.from({length:7}, (_,i) => addDays(d, i-3));
   const ph = ST().photo;
   let banners = "";
+  if (loggedIn() && S.on.pending) banners += `<button class="banner" data-a="tabTo" data-v="online">${I.bell}<div class="grow"><b>${S.on.pending} ta yangi onlayn bron</b><span>Tasdiqlang yoki rad eting</span></div>${I.right}</button>`;
+  if (PLAT() && !loggedIn() && !ST().authBannerOff) banners += `<div class="banner">${I.users}<div class="grow"><b>Mijozlar sizni botda topsin</b><span>Ro'yxatdan o'ting va onlayn bron qabul qiling</span></div><button class="btn acc sm" data-a="openAuth" data-v="reg">O'tish</button><button class="ib" style="width:32px;height:32px;background:var(--fill)" data-a="authBannerOff" aria-label="Yopish">${I.x}</button></div>`;
   if (syncOn() && SYNC.error) banners += `<button class="banner" data-a="tabTo" data-v="settings">${I.x}<div class="grow"><b>Google Sheets bilan aloqa yo'q</b><span>${esc(SYNC.error)} — ma'lumotlar telefonda saqlanmoqda</span></div>${I.right}</button>`;
   if (isToday && (dom >= dim-1 || dom === 1)) banners += `<button class="banner" data-a="openReport" data-v="${dom===1 ? addMonths(today().slice(0,7),-1) : today().slice(0,7)}">${I.chart}<div class="grow"><b>${dom===1 ? "O'tgan oy hisoboti tayyor" : "Oy tugayapti"}</b><span>Oylik hisobotni ko'ring va saqlab qo'ying</span></div>${I.right}</button>`;
   return `${topBar(ST().master || ST().shop, isToday ? "Xush kelibsiz 👋" : dLong(d))}
@@ -596,7 +647,7 @@ function vHome(){
     <button class="on" data-a="newAppt">${I.cal}<span>Navbat</span></button>
     <button data-a="addExpense">${I.receipt}<span>Xarajat</span></button>
     <button data-a="tabTo" data-v="reminders">${I.bell}<span>Eslatma</span>${rc ? `<i class="dot">${rc}</i>` : ""}</button>
-    <button data-a="tab" data-v="report">${I.chart}<span>Hisobot</span></button>
+    ${loggedIn() ? `<button data-a="tabTo" data-v="online">${I.users}<span>Bronlar</span>${S.on.pending ? `<i class="dot">${S.on.pending}</i>` : ""}</button>` : `<button data-a="tab" data-v="report">${I.chart}<span>Hisobot</span></button>`}
   </div>
   <h2 class="sec">Kassa <small>${isToday ? "bugun" : dLabel(d)}</small></h2>
   <div class="kgrid">
@@ -608,6 +659,7 @@ function vHome(){
     ${ktile("amber", I.receipt, "Xarajat", fmt(T.expense), 'data-a="tabTo" data-v="expenses"')}
   </div>
   ${banners}
+  ${onToday.length ? `<h2 class="sec">Onlayn bronlar <small>${onToday.length} ta</small></h2><div class="list">${onToday.map(onItem).join("")}</div>` : ""}
   ${appts.length ? `<h2 class="sec">Navbatdagilar <small>${appts.length} ta</small></h2><div class="list">${appts.map(a => { const c = clientById(a.clientId);
     return `<div class="item"><div class="av t">${a.time}</div><div class="mid"><div class="t1">${esc(c ? c.name : "Mijoz")}</div><div class="t2">${esc(a.note || (c && c.phone) || "")}</div></div>
       <button class="btn green sm" data-a="apptCame" data-v="${a.id}">Keldi</button></div>`; }).join("")}</div>` : ""}
@@ -706,6 +758,7 @@ function saveVisit(){
     items: F.items.map(i => ({ name: i.name.trim() || "Xizmat", price: num(i.price) })),
     subtotal: k.sub, discount: k.disc, total: k.total, cash: k.cash, card: k.card, debt: k.debt, note: F.note.trim() });
   if (F.apptId) { const a = DB.appts.find(x => x.id === F.apptId); if (a) a.done = true; }
+  if (F.bookingId && loggedIn()) api("set_booking", { id: F.bookingId, status: "done" }).then(refreshOnline).catch(() => {});
   persist(); haptic("success"); toast(k.debt ? `Saqlandi · ${fmt(k.debt)} nasiyaga yozildi` : "Saqlandi");
   S.day = F.date; S.F = null; S.stack = []; S.screen = "home"; render(true);
 }
@@ -834,6 +887,7 @@ function vReminders(){
       <button style="flex:1;min-width:0;text-align:left" data-a="openClient" data-v="${c.id}"><b>${esc(c.name)}</b><div class="muted" style="font-size:13px">${sub}</div></button></div>
       <div class="btns" style="margin-top:10px">
         ${ph ? `<a class="btn soft sm" href="sms:${ph}?&body=${encodeURIComponent(text)}" data-a="markRem" data-v="${c.id}" data-k="${kind}" data-x="${extraId||""}">${I.sms} SMS</a>` : ""}
+        ${loggedIn() && ph ? `<button class="btn acc sm" data-a="botSend" data-v="${c.id}" data-k="${kind}" data-x="${extraId||""}">${I.bell} Bot</button>` : ""}
         <button class="btn soft sm" data-a="tgSend" data-v="${c.id}" data-k="${kind}" data-x="${extraId||""}">${I.send} Telegram</button>
         <button class="btn gray sm" data-a="copyMsg" data-v="${c.id}" data-k="${kind}" data-x="${extraId||""}" aria-label="Matnni nusxalash">${I.copy}</button>
         ${kind === "visit" ? `<button class="btn gray sm" data-a="skipRem" data-v="${c.id}" aria-label="Keyinroq">${I.x}</button>` : ""}
@@ -1032,6 +1086,9 @@ function vMore(){
   const rc = remindCount(), ap = DB.appts.filter(a => a.date >= today() && !a.done).length;
   const T = totals(x => x.startsWith(today().slice(0,7)));
   return `${topBar("Yana", ST().shop)}
+  ${PLAT() ? `<div class="list" style="margin-bottom:20px">${loggedIn()
+      ? lrow("#34C759", I.users, "Onlayn bronlar", S.on.pending ? `<span class="badge">${S.on.pending}</span>` : "", 'data-a="tabTo" data-v="online"') + lrow("#AF52DE", I.scissors, "Profil — mijozlar botida", (AUTH.user && AUTH.user.profile && AUTH.user.profile.active) ? "yoqilgan" : "o'chiq", 'data-a="tabTo" data-v="profile"')
+      : lrow("#34C759", I.users, "Ro'yxatdan o'tish / Kirish", "", 'data-a="openAuth" data-v="reg"')}</div>` : ""}
   <div class="list">
     ${lrow("#FF9500", I.bell, "Eslatmalar", rc ? `<span class="badge">${rc}</span>` : "", 'data-a="tabTo" data-v="reminders"')}
     ${lrow("#007AFF", I.cal, "Navbatlar", ap ? `${ap} ta` : "", 'data-a="tabTo" data-v="appts"')}
@@ -1050,7 +1107,13 @@ function vMore(){
 function vSettings(){
   const D = S.draft || (S.draft = JSON.parse(JSON.stringify(ST())));
   return `${topBar("Sozlamalar")}
-  <h2 class="sec" style="margin-top:4px">Sartaroshxona</h2>
+  ${PLAT() ? `<h2 class="sec" style="margin-top:4px">Hisob</h2>
+  <div class="card">${loggedIn() ? `<div class="row"><span class="k">Telefon</span><span class="v">${showPhone(AUTH.user.phone)}</span></div>
+    <div class="row"><span class="k">Ism</span><span class="v">${esc(AUTH.user.name)}</span></div>
+    <div class="row"><span class="k">Turi</span><span class="v">${AUTH.user.role === "owner" ? "Sartaroshxona egasi" : "Usta"}</span></div>
+    <div class="btns" style="margin-top:8px"><button class="btn soft sm" data-a="tabTo" data-v="profile">Profil</button><button class="btn red sm" data-a="logout">Chiqish</button></div>`
+    : `<p class="note" style="margin:0 0 10px">Ro'yxatdan o'ting: ma'lumotlaringiz serverda saqlanadi, mijozlar sizni botda topib yoziladi.</p><div class="btns"><button class="btn acc sm" data-a="openAuth" data-v="reg">Ro'yxatdan o'tish</button><button class="btn gray sm" data-a="openAuth" data-v="login">Kirish</button></div>`}</div>` : ""}
+  <h2 class="sec" ${PLAT() ? "" : 'style="margin-top:4px"'}>Sartaroshxona</h2>
   <div class="card"><label class="field"><span>Nomi</span><input class="inp" data-f="D.shop" value="${esc(D.shop)}"></label>
     <label class="field"><span>Usta ismi</span><input class="inp" data-f="D.master" value="${esc(D.master)}" placeholder="Ixtiyoriy"></label></div>
   <h2 class="sec">Rasmlar va ko'rinish</h2>
@@ -1061,8 +1124,9 @@ function vSettings(){
     <div class="btns" style="margin-top:10px"><label class="btn soft sm">Rasm tanlash<input type="file" accept="image/*" id="photoMaster" hidden></label>${ST().mphoto ? `<button class="btn gray sm" data-a="rmPhoto" data-v="mphoto">O'chirish</button>` : ""}</div>
     <div class="field" style="margin-top:16px"><span>Mavzu</span><div class="seg"><button class="${ST().theme!=="light"?"on":""}" data-a="setTheme" data-v="dark">Jigarrang</button><button class="${ST().theme==="light"?"on":""}" data-a="setTheme" data-v="light">Yorug'</button></div></div>
   </div>
-  <h2 class="sec">Google Sheets</h2>
-  <div class="card">
+  ${platSync() ? `<h2 class="sec">Saqlash</h2><div class="card"><div class="row" style="border:0"><span class="k">Ma'lumotlar serverda</span><span class="v" id="syncStatus">${syncStatusHtml()}</span></div><p class="note">Boshqa telefondan raqam va parolingiz bilan kirsangiz, hammasi tiklanadi.</p></div>` : ""}
+  <h2 class="sec" ${platSync() ? 'style="display:none"' : ""}>Google Sheets</h2>
+  <div class="card" ${platSync() ? 'style="display:none"' : ""}>
     ${(() => { const Y = S.Y || (S.Y = { url: SYNC.url || "", key: SYNC.key || "" });
       return `<label class="field"><span>Veb-ilova havolasi (/exec)</span><input class="inp" data-f="Y.url" value="${esc(Y.url)}" placeholder="https://script.google.com/macros/s/…/exec" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
       <label class="field"><span>Kalit</span><input class="inp" data-f="Y.key" value="${esc(Y.key)}" placeholder="Apps Script'dagi KALIT" autocapitalize="off" autocomplete="off" spellcheck="false"></label>`; })()}
@@ -1099,7 +1163,7 @@ function vSettings(){
 }
 function saveSettings(){
   const D = S.draft;
-  const svcs = D.services.map(s => ({ id: s.id || uid(), name: String(s.name).trim(), price: num(s.price) })).filter(s => s.name);
+  const svcs = D.services.map(s => ({ id: s.id || uid(), name: String(s.name).trim(), price: num(s.price), duration: num(s.duration) || 30 })).filter(s => s.name);
   if (!svcs.length) { haptic("error"); toast("Kamida bitta xizmat bo'lsin"); return; }
   if (D.newPin && !/^\d{4}$/.test(D.newPin)) { haptic("error"); toast("PIN 4 ta raqam bo'lsin"); return; }
   const cats = String(D.catsText ?? D.categories.join(",")).split(",").map(s=>s.trim()).filter(Boolean);
@@ -1139,9 +1203,159 @@ function vWelcome(){
 }
 
 
+/* ================= KIRISH / RO'YXATDAN O'TISH ================= */
+function vAuth(){
+  const A = S.au || (S.au = { mode: S.authMode || (ST().onboarded ? "reg" : "login"), phone:"", pass:"", pass2:"", name: ST().master || "", shopName: ST().shop === "Sartaroshxona" ? "" : ST().shop, role:"usta", contact:null });
+  const ph = ST().photo, canSkip = ST().onboarded;
+  const head = `<div class="wel-art">${ART_SVG}</div>${canSkip ? `<button class="wskip" data-a="authSkip">Keyinroq ✕</button>` : ""}`;
+  if (A.mode === "login") return `<div class="wel auth ${ph?"ph":""}" ${ph ? `style="--ph:url(${ph})"` : ""}>${head}<div class="wel-body">
+    <h1>Kirish</h1><p>Telefon raqamingiz va parolingizni kiriting.</p>
+    <label class="field"><span>Telefon raqam</span><input class="inp" data-f="au.phone" value="${esc(A.phone)}" type="tel" inputmode="tel" autocomplete="tel" placeholder="+998 90 123 45 67"></label>
+    <label class="field"><span>Parol</span><input class="inp" data-f="au.pass" value="${esc(A.pass)}" type="password" autocomplete="current-password" placeholder="••••••"></label>
+    <button class="slide" data-a="doLogin"><span class="sc">${I.scissors}</span><b>Kirish</b><span class="ar">›››</span></button>
+    <button class="lnk" data-a="authMode" data-v="reg">Hisobingiz yo'qmi? Ro'yxatdan o'tish</button>
+  </div></div>`;
+  return `<div class="wel auth ${ph?"ph":""}" ${ph ? `style="--ph:url(${ph})"` : ""}>${head}<div class="wel-body">
+    <h1>Ro'yxatdan o'tish</h1><p>Mijozlar sizni botda topib, onlayn yozila oladi. Ma'lumotlaringiz serverda saqlanadi.</p>
+    <div class="step"><i>1</i> Telefon raqamingizni tasdiqlang</div>
+    ${A.contact ? `<div class="okph">${I.check} ${showPhone(A.contact)}</div>`
+      : `<button class="btn ghost" data-a="shareContact">📱 Raqamni Telegram orqali ulashish</button>${IN_TG ? "" : `<p class="note">Ro'yxatdan o'tish faqat Telegram bot ichida ishlaydi.</p>`}`}
+    <div class="step"><i>2</i> Ma'lumotlaringiz</div>
+    <div class="seg"><button class="${A.role==="usta"?"on":""}" data-a="auRole" data-v="usta">Usta</button><button class="${A.role==="owner"?"on":""}" data-a="auRole" data-v="owner">Sartaroshxona egasi</button></div>
+    <label class="field"><span>Ismingiz</span><input class="inp" data-f="au.name" value="${esc(A.name)}" autocomplete="name" placeholder="Masalan: Sardor"></label>
+    ${A.role === "owner" ? `<label class="field"><span>Sartaroshxona nomi</span><input class="inp" data-f="au.shopName" value="${esc(A.shopName)}" placeholder="Masalan: Barber Pro"></label>` : ""}
+    <label class="field"><span>Parol (kamida 6 belgi)</span><input class="inp" data-f="au.pass" value="${esc(A.pass)}" type="password" autocomplete="new-password"></label>
+    <label class="field"><span>Parolni takrorlang</span><input class="inp" data-f="au.pass2" value="${esc(A.pass2)}" type="password" autocomplete="new-password"></label>
+    <button class="slide" data-a="doRegister"><span class="sc">${I.scissors}</span><b>Ro'yxatdan o'tish</b><span class="ar">›››</span></button>
+    <button class="lnk" data-a="authMode" data-v="login">Hisobingiz bormi? Kirish</button>
+  </div></div>`;
+}
+async function onAuth(j){
+  if (!j || !j.ok) { haptic("error"); toast((j && j.error) || "Xato"); return; }
+  AUTH = { token: j.token, user: j.user }; saveAuth();
+  if (!DB.settings.master) DB.settings.master = j.user.name;
+  if (j.user.shop && (!DB.settings.shop || DB.settings.shop === "Sartaroshxona")) DB.settings.shop = j.user.shop.name;
+  const fresh = !DB.visits.length && !DB.clients.length;
+  DB.settings.onboarded = true;
+  if (fresh) { DB.updatedAt = 0; saveLocal(); } else { SYNC.pending = true; saveSync(); saveLocal(); }
+  S.au = null; S.showAuth = false; S.screen = "home"; S.stack = [];
+  haptic("success"); toast(`Xush kelibsiz, ${j.user.name}!`); render(true);
+  await pullSync(true); refreshOnline();
+  if (!window._onInt) window._onInt = setInterval(refreshOnline, 60000);
+  if (!j.user.profile || !j.user.profile.active) setTimeout(() => toast("Mijozlar sizni topishi uchun Yana → Profil'ni to'ldiring"), 2600);
+}
+
+/* ================= ONLAYN BRONLAR ================= */
+const ST_LABEL = { pending:"Kutilmoqda", confirmed:"Tasdiqlangan", rejected:"Rad etilgan", cancelled:"Bekor qilingan", done:"Bajarildi", noshow:"Kelmadi", expired:"Muddati o'tgan" };
+function onItem(b){
+  const ph = phoneLink(showPhone(b.clientPhone));
+  return `<div class="bk fade"><div class="bk-h"><div class="av t">${b.time}<small style="font-size:10px;font-weight:500">${dLabel(b.date).split("-")[0]} ${MON[parseYmd(b.date).getMonth()].slice(0,3)}</small></div>
+    <div class="grow"><b>${esc(b.clientName)}</b><small>${esc(b.service)} · ${fmt(b.price)} · ${b.duration} daq</small></div><span class="st ${b.status}">${ST_LABEL[b.status]||b.status}</span></div>
+    ${b.status === "pending" ? `<div class="btns"><button class="btn green sm" data-a="onSet" data-v="${b.id}" data-s="confirmed">✅ Tasdiqlash</button><button class="btn red sm" data-a="onSet" data-v="${b.id}" data-s="rejected">Rad etish</button>${ph ? `<a class="btn gray sm" href="tel:${ph}" aria-label="Qo'ng'iroq">${I.phone}</a>` : ""}</div>`
+    : b.status === "confirmed" ? `<div class="btns"><button class="btn acc sm" data-a="onCame" data-v="${b.id}">Keldi</button><button class="btn gray sm" data-a="onSet" data-v="${b.id}" data-s="noshow">Kelmadi</button><button class="btn red sm" data-a="onSet" data-v="${b.id}" data-s="cancelled">Bekor</button>${ph ? `<a class="btn gray sm" href="tel:${ph}" aria-label="Qo'ng'iroq">${I.phone}</a>` : ""}</div>` : ""}
+  </div>`;
+}
+function vOnline(){
+  const L = S.on.list, td = today();
+  const pend = L.filter(b => b.status === "pending"), conf = L.filter(b => b.status === "confirmed" && b.date >= td);
+  const past = L.filter(b => !(b.status === "pending" || (b.status === "confirmed" && b.date >= td))).slice().reverse().slice(0, 20);
+  const active = AUTH.user && AUTH.user.profile && AUTH.user.profile.active;
+  return `${topBar("Onlayn bronlar", "Mijozlar botidan", `<button class="ib" data-a="onRefresh" aria-label="Yangilash">${I.undo}</button>`)}
+  ${!active ? `<button class="banner" data-a="tabTo" data-v="profile">${I.scissors}<div class="grow"><b>Profilingiz mijozlarga ko'rinmayapti</b><span>Profilni to'ldirib, "Mijozlar botida ko'rinish"ni yoqing</span></div>${I.right}</button>` : ""}
+  ${pend.length ? `<h2 class="sec">Tasdiqlash kutilmoqda <small>${pend.length} ta</small></h2><div class="list">${pend.map(onItem).join("")}</div>` : ""}
+  <h2 class="sec">Kelgusi bronlar <small>${conf.length} ta</small></h2>
+  ${conf.length ? `<div class="list">${conf.map(onItem).join("")}</div>` : empty("Hozircha bron yo'q", S.on.loaded ? "Mijozlar botdan yozilganda shu yerda chiqadi va usta botingizga xabar keladi." : "Yuklanmoqda…", "", I.cal)}
+  ${past.length ? `<h2 class="sec">Oxirgi 2 hafta</h2><div class="list">${past.map(onItem).join("")}</div>` : ""}
+  ${PLATFORM.MIJOZ_BOT && AUTH.user ? `<button class="btn card block" style="margin-top:16px" data-a="shareMe">${I.send} Mijozlarga havolamni ulashish</button>` : ""}`;
+}
+let onBusy = false;
+async function refreshOnline(){
+  if (!loggedIn() || onBusy || !navigator.onLine) return;
+  onBusy = true;
+  try { const j = await api("usta_bookings"); if (j.ok) { S.on = { list: j.list, pending: j.pending, loaded: true };
+    if (["home","online","more"].includes(S.screen) && !(document.activeElement && document.activeElement.matches("input,textarea"))) render(); } } catch(e){}
+  onBusy = false;
+}
+
+/* ================= PROFIL (mijozlar botidagi ko'rinish) ================= */
+function vProfile(){
+  if (!loggedIn()) return `${topBar("Profil")}${empty("Avval ro'yxatdan o'ting", "Mijozlar sizni botda topishi uchun hisob kerak.", `<button class="btn acc" data-a="openAuth" data-v="reg">Ro'yxatdan o'tish</button>`, I.users)}`;
+  const U = AUTH.user, pr = U.profile || {}, member = U.shopId && !U.isOwner;
+  const F = S.pf || (S.pf = { name: U.name, bio: pr.bio || "", address: pr.address || "", lat: pr.lat || "", lng: pr.lng || "", photo: pr.photo || "",
+    workStart: pr.workStart || "09:00", workEnd: pr.workEnd || "20:00", daysOff: (pr.daysOff || [0]).slice(), step: pr.step || 30, active: !!pr.active,
+    services: (pr.services && pr.services.length ? pr.services : ST().services).map(x => ({ name: x.name, price: x.price, duration: x.duration || 30 })),
+    shop: U.isOwner && U.shop ? { name: U.shop.name, address: U.shop.address || "", lat: U.shop.lat || "", lng: U.shop.lng || "", photo: U.shop.photo || "" } : null, addPhone: "" });
+  const order = [1,2,3,4,5,6,0], lbl = {1:"Du",2:"Se",3:"Ch",4:"Pa",5:"Ju",6:"Sh",0:"Ya"};
+  const loc = (lat, lng, act) => `<div class="locbox">📍<div class="grow">${lat && lng ? `Joylashuv saqlangan<br><small class="muted">${(+lat).toFixed(4)}, ${(+lng).toFixed(4)}</small>` : `<span class="muted">Joylashuv kiritilmagan — mijozlar "yaqinlar"da ko'rmaydi</span>`}</div><button class="btn soft sm" data-a="${act}">Joylashuvni olish</button></div>`;
+  return `${topBar("Profil", "Mijozlar botida shunday ko'rinasiz")}
+  <div class="card"><div class="phrow"><div class="pphoto" ${F.photo ? `style="background-image:url(${F.photo})"` : ""}>${F.photo ? "" : esc(initials(F.name))}</div>
+    <div class="grow"><b style="font-size:18px">${esc(F.name)}</b><div class="muted" style="font-size:13px">${showPhone(U.phone)}${U.shop ? " · " + esc(U.shop.name) : ""}</div>
+    <label class="btn soft sm" style="margin-top:8px">Rasm tanlash<input type="file" accept="image/*" id="pfPhoto" hidden></label></div></div>
+    <div class="field" style="margin-top:14px"><span>Mijozlar botida ko'rinish</span><div class="seg"><button class="${F.active?"on":""}" data-a="pfActive" data-v="1">Yoqilgan</button><button class="${!F.active?"on":""}" data-a="pfActive" data-v="0">O'chirilgan</button></div></div>
+  </div>
+  <h2 class="sec">Ma'lumot</h2>
+  <div class="card"><label class="field"><span>Ism (mijozlar ko'radi)</span><input class="inp" data-f="pf.name" value="${esc(F.name)}"></label>
+    <label class="field"><span>O'zingiz haqingizda</span><textarea class="inp" data-f="pf.bio" placeholder="Masalan: 8 yillik tajriba, fade va klassik soch turmaklari">${esc(F.bio)}</textarea></label>
+    ${member ? `<p class="note">📍 Manzil va joylashuv sartaroshxonaniki: ${esc(U.shop.address || "kiritilmagan")}</p>`
+      : F.shop ? `<p class="note">Manzil va joylashuv quyidagi "Sartaroshxona" bo'limida.</p>`
+      : `<label class="field"><span>Manzil</span><input class="inp" data-f="pf.address" value="${esc(F.address)}" placeholder="Masalan: Marg'ilon, Mustaqillik ko'chasi 5"></label>${loc(F.lat, F.lng, "pfLoc")}`}
+  </div>
+  <h2 class="sec">Ish vaqti</h2>
+  <div class="card"><div class="two"><label class="field" style="margin:0"><span>Boshlanishi</span><input class="inp" type="time" data-f="pf.workStart" value="${F.workStart}"></label>
+    <label class="field" style="margin:0"><span>Tugashi</span><input class="inp" type="time" data-f="pf.workEnd" value="${F.workEnd}"></label></div>
+    <div class="field"><span>Dam olish kunlari</span><div class="chips">${order.map(d => `<button class="chip ${F.daysOff.includes(d)?"on":""}" data-a="pfOff" data-v="${d}">${lbl[d]}</button>`).join("")}</div></div>
+    <div class="field"><span>Bron vaqtlari oralig'i</span><div class="seg">${[15,30,60].map(x => `<button class="${+F.step===x?"on":""}" data-a="pfStep" data-v="${x}">${x} daq</button>`).join("")}</div></div>
+  </div>
+  <h2 class="sec">Xizmatlar <small>nomi · narx · daqiqa</small></h2>
+  <div class="card">${F.services.map((x,i) => `<div class="irow" style="grid-template-columns:1fr 92px 62px 36px;${i===0?"margin-top:0":""}">
+      <input class="inp" data-f="pfs.${i}.name" value="${esc(x.name)}" aria-label="Xizmat nomi">
+      <input class="inp" data-f="pfs.${i}.price" value="${esc(x.price)}" inputmode="numeric" aria-label="Narxi">
+      <input class="inp" data-f="pfs.${i}.duration" value="${esc(x.duration)}" inputmode="numeric" aria-label="Davomiyligi, daqiqa">
+      <button class="ib" style="width:36px;height:36px;background:var(--red-soft);color:var(--red)" data-a="pfSvcDel" data-v="${i}" aria-label="O'chirish">${I.x}</button></div>`).join("")}
+    <button class="btn soft block" style="margin-top:10px" data-a="pfSvcAdd">+ Xizmat qo'shish</button>
+    <p class="note">Bu narxlar kassadagi xizmatlar bilan bir xil saqlanadi.</p></div>
+  ${F.shop ? `<h2 class="sec">Sartaroshxona</h2>
+  <div class="card"><div class="phrow"><div class="phprev" ${F.shop.photo ? `style="background-image:url(${F.shop.photo})"` : ""}>${F.shop.photo ? "" : I.scissors}</div><div class="grow"><b>Sartaroshxona rasmi</b><br><label class="btn soft sm" style="margin-top:6px">Rasm tanlash<input type="file" accept="image/*" id="shopPhoto" hidden></label></div></div>
+    <label class="field"><span>Nomi</span><input class="inp" data-f="shop.name" value="${esc(F.shop.name)}"></label>
+    <label class="field"><span>Manzil</span><input class="inp" data-f="shop.address" value="${esc(F.shop.address)}" placeholder="Shahar, ko'cha, mo'ljal"></label>
+    ${loc(F.shop.lat, F.shop.lng, "shopLoc")}</div>
+  <h2 class="sec">Ustalar <small>${(S.shopMasters||[]).length} ta</small></h2>
+  <div class="list">${(S.shopMasters||[]).map(m => `<div class="item"><div class="av" style="${avBg(m.name)}">${esc(initials(m.name))}</div><div class="mid"><div class="t1">${esc(m.name)}${m.owner ? " (siz)" : ""}</div><div class="t2">${showPhone(m.phone)} · ${m.active ? "botda ko'rinadi" : "profili o'chiq"}</div></div>
+    ${m.owner ? "" : `<button class="ib" style="width:36px;height:36px;background:var(--fill)" data-a="rmMaster" data-v="${m.id}" aria-label="Chiqarish">${I.x}</button>`}</div>`).join("")}</div>
+  <div class="card" style="margin-top:10px"><label class="field"><span>Usta qo'shish — uning telefon raqami (u avval usta botida ro'yxatdan o'tgan bo'lsin)</span><input class="inp" data-f="pf.addPhone" value="${esc(F.addPhone)}" type="tel" inputmode="tel" placeholder="+998 90 123 45 67"></label>
+    <button class="btn acc block" style="margin-top:10px" data-a="addMaster">Qo'shish</button></div>` : ""}
+  ${PLATFORM.MIJOZ_BOT ? `<button class="btn card block" style="margin-top:16px" data-a="shareMe">${I.send} Mijozlarga havolamni ulashish</button>` : ""}`;
+}
+function getLocation(cb){
+  const fail = () => { toast("Joylashuvni olib bo'lmadi. Telefon sozlamalarida ruxsat bering"); cb(null); };
+  const viaBrowser = () => navigator.geolocation ? navigator.geolocation.getCurrentPosition(p => cb({ lat: p.coords.latitude, lng: p.coords.longitude }), fail, { enableHighAccuracy: true, timeout: 12000 }) : fail();
+  try {
+    const LM = IN_TG && tg.LocationManager;
+    if (LM && LM.init) return LM.init(() => { if (!LM.isLocationAvailable) return viaBrowser();
+      LM.getLocation(d => d ? cb({ lat: d.latitude, lng: d.longitude }) : (LM.isAccessRequested && !LM.isAccessGranted ? (toast("Joylashuvga ruxsat bering"), LM.openSettings()) : viaBrowser())); });
+  } catch(e){}
+  viaBrowser();
+}
+async function saveProfile(){
+  const F = S.pf; if (!F) return;
+  const services = F.services.map(x => ({ name: String(x.name).trim(), price: num(x.price), duration: num(x.duration) || 30 })).filter(x => x.name);
+  if (F.active && !services.length) { haptic("error"); toast("Kamida bitta xizmat kiriting"); return; }
+  if (F.active && !(AUTH.user.shopId) && !(F.lat && F.lng) && !F.address.trim()) { haptic("error"); toast("Manzil yoki joylashuvni kiriting"); return; }
+  toast("Saqlanmoqda…");
+  let j = await api("profile_save", { profile: { name: F.name, bio: F.bio, address: F.address, lat: F.lat, lng: F.lng, photo: F.photo, workStart: F.workStart, workEnd: F.workEnd, daysOff: F.daysOff, step: +F.step, services, active: F.active } });
+  if (j.ok && F.shop) j = await api("shop_save", { shop: F.shop });
+  if (!j.ok) { haptic("error"); toast(j.error || "Xato"); return; }
+  AUTH.user = j.user; saveAuth();
+  // Kassadagi xizmatlar bilan bir xil bo'lsin
+  DB.settings.services = services.map((x,i) => Object.assign({ id: (ST().services.find(o => o.name === x.name) || {}).id || "s" + uid() }, x));
+  if (F.name) DB.settings.master = F.name;
+  persist(); S.pf = null; haptic("success"); toast(F.active ? "Saqlandi — mijozlar sizni botda ko'radi ✓" : "Saqlandi"); render();
+}
+async function loadShopMasters(){ if (!(AUTH.user && AUTH.user.isOwner)) return; const j = await api("shop_masters"); if (j.ok) { S.shopMasters = j.list; if (S.screen === "profile") render(); } }
+
 /* ================= Render ================= */
 const VIEWS = { home:vHome, visit:vVisit, clients:vClients, client:vClient, clientForm:vClientForm, debts:vDebts, pay:vPay, reminders:vReminders,
-                appts:vAppts, apptForm:vApptForm, expenses:vExpenses, expenseForm:vExpenseForm, report:vReport, more:vMore, settings:vSettings };
+                appts:vAppts, apptForm:vApptForm, expenses:vExpenses, expenseForm:vExpenseForm, report:vReport, more:vMore, settings:vSettings, online:vOnline, profile:vProfile };
 // Telegram MainButton (brauzerda — ramka ichidagi o'xshash tugma)
 let mainFn = null;
 if (IN_TG) tg.MainButton.onClick(() => { if (mainFn) { haptic(); mainFn(); } });
@@ -1163,6 +1377,7 @@ function mainFor(){
     case "expenses": return ["Xarajat qo'shish", () => ACT.addExpense()];
     case "expenseForm": return ["Saqlash", saveExpense];
     case "settings": return ["Saqlash", saveSettings];
+    case "profile": return loggedIn() ? ["Saqlash", saveProfile] : [null, null];
   }
   return [null, null];
 }
@@ -1170,7 +1385,8 @@ const scroller = () => null;
 function render(toTop){
   const app = document.getElementById("app"), sc = scroller(), ovl = document.getElementById("ovl"), nav = document.getElementById("navSlot");
   const inner = S.unlocked && !TABS.includes(S.screen);
-  const over = !ST().onboarded ? vWelcome() : !S.unlocked ? vLock() : "";
+  const needAuth = PLAT() && !loggedIn() && (!ST().onboarded || S.showAuth);
+  const over = needAuth ? vAuth() : !ST().onboarded ? vWelcome() : !S.unlocked ? vLock() : "";
   ovl.innerHTML = over; document.documentElement.classList.toggle("ovl-on", !!over);
   if (over) { nav.innerHTML = ""; setMain(null); try { IN_TG && tg.BackButton.hide(); } catch(e){} return; }
   const y = sc ? sc.scrollTop : window.scrollY;
@@ -1180,13 +1396,15 @@ function render(toTop){
   const rs = document.getElementById("restore"); if (rs) rs.onchange = e => e.target.files[0] && restore(e.target.files[0]);
   const ps = document.getElementById("photoShop"); if (ps) ps.onchange = e => e.target.files[0] && readPhoto(e.target.files[0], 1100, d => { DB.settings.photo = d; persist(); toast("Rasm saqlandi"); render(); });
   const pm = document.getElementById("photoMaster"); if (pm) pm.onchange = e => e.target.files[0] && readPhoto(e.target.files[0], 320, d => { DB.settings.mphoto = d; persist(); toast("Rasm saqlandi"); render(); });
+  const pp = document.getElementById("pfPhoto"); if (pp) pp.onchange = e => e.target.files[0] && readPhoto(e.target.files[0], 240, d => { S.pf.photo = d; render(); });
+  const sp = document.getElementById("shopPhoto"); if (sp) sp.onchange = e => e.target.files[0] && readPhoto(e.target.files[0], 300, d => { S.pf.shop.photo = d; render(); });
   if (IN_TG) { try { inner ? tg.BackButton.show() : tg.BackButton.hide(); } catch(e){} }
   const [t, f] = mainFor(); setMain(t, f);
 }
 
 /* ================= Hodisalar ================= */
 const ACT = {
-  back: goBack, tab, tabTo: v => go(v),
+  back: goBack, tab, tabTo: v => { if (v === "profile") { S.pf = null; loadShopMasters(); } if (v === "online") refreshOnline(); go(v); },
   dayShift: v => { S.day = addDays(S.day, +v); render(); },
   newVisit: () => newVisitForm(null), visitFor: v => newVisitForm(v),
   apptCame: v => { const a = DB.appts.find(x => x.id === v); if (a) { S.day = today(); newVisitForm(a.clientId, a.id); } },
@@ -1240,6 +1458,64 @@ const ACT = {
   backupCopy: () => copyText(JSON.stringify({ app:"usta-kassa", ...DB })),
   wipe: async () => { if (!(await ask("Hamma ma'lumot o'chadi! Avval zaxira olganmisiz?"))) return; if (!(await ask("Rostdan ham hammasini o'chiramizmi?"))) return;
     const st = DB.settings; DB = { settings: st, clients:[], visits:[], payments:[], expenses:[], appts:[] }; persist(); toast("Tozalandi"); tab("home"); },
+  openAuth: v => { S.authMode = v; S.au = null; S.showAuth = true; render(true); },
+  authSkip: () => { S.showAuth = false; S.au = null; render(true); },
+  authBannerOff: () => { DB.settings.authBannerOff = true; saveLocal(); render(); },
+  authMode: v => { S.au.mode = v; render(true); },
+  auRole: v => { S.au.role = v; render(); },
+  shareContact: async () => {
+    if (!IN_TG) { toast("Ilovani Telegram bot ichida oching"); return; }
+    const check = async () => { const j = await api("contact_status"); if (j.ok && j.phone) { S.au.contact = j.phone;
+      if (j.registered) { S.au.mode = "login"; S.au.phone = showPhone(j.phone); toast("Bu raqam ro'yxatdan o'tgan — parolingiz bilan kiring"); } else haptic("success");
+      render(); return true; } return false; };
+    if (await check()) return;
+    const poll = async () => { toast("Tekshirilmoqda…"); for (let i = 0; i < 10; i++) { await sleep(1500); if (await check()) return; } toast("Raqam kelmadi. Botda «📱 Raqamni ulashish» tugmasini bosing"); };
+    try { tg.requestContact(ok => { if (ok) poll(); else toast("Raqam ulashilmadi"); }); } catch(e){ toast("Botga qaytib «📱 Raqamni ulashish» tugmasini bosing"); }
+  },
+  doRegister: async () => { const A = S.au;
+    if (!A.contact) { haptic("error"); toast("Avval raqamingizni ulashing"); return; }
+    if (String(A.name).trim().length < 2) { haptic("error"); toast("Ismingizni kiriting"); return; }
+    if (String(A.pass).length < 6) { haptic("error"); toast("Parol kamida 6 belgi bo'lsin"); return; }
+    if (A.pass !== A.pass2) { haptic("error"); toast("Parollar bir xil emas"); return; }
+    toast("Yuborilmoqda…");
+    const j = await api("register", { name: A.name.trim(), password: A.pass, role: A.role, shopName: A.shopName }).catch(() => ({ error: "Internet xatosi" }));
+    if (!j.ok) { haptic("error"); toast(j.error || "Xato"); return; }
+    // Ro'yxatdan o'tgach — kirish oynasiga: telefon raqam va parol bilan kiradi
+    haptic("success"); S.au = Object.assign({}, A, { mode: "login", phone: showPhone(j.user.phone), pass: "", pass2: "" });
+    toast("Ro'yxatdan o'tdingiz! Endi parolingiz bilan kiring"); render(true); },
+  doLogin: async () => { const A = S.au, d = String(A.phone).replace(/\D/g,"");
+    if (d.length < 9) { haptic("error"); toast("Telefon raqamni to'liq kiriting"); return; }
+    if (!A.pass) { haptic("error"); toast("Parolni kiriting"); return; }
+    toast("Tekshirilmoqda…"); onAuth(await api("login", { phone: d, password: A.pass, app: "usta" }).catch(() => ({ error: "Internet xatosi" }))); },
+  logout: async () => { if (!(await ask("Hisobdan chiqilsinmi? Telefondagi ma'lumotlar qoladi."))) return;
+    try { await api("logout"); } catch(e){} AUTH = {}; saveAuth(); S.on = { list:[], pending:0 }; SYNC.pending = false; saveSync(); toast("Chiqdingiz"); tab("home"); },
+  onRefresh: () => { toast("Yangilanmoqda…"); refreshOnline(); },
+  onSet: async (v, el) => { const st = el.dataset.s;
+    if ((st === "rejected" || st === "cancelled") && !(await ask(st === "rejected" ? "Bron rad etilsinmi? Mijozga xabar boradi." : "Bron bekor qilinsinmi? Mijozga xabar boradi."))) return;
+    const j = await api("set_booking", { id: v, status: st }); if (!j.ok) { toast(j.error || "Xato"); return; }
+    haptic("success"); toast(st === "confirmed" ? "Tasdiqlandi — mijozga xabar ketdi" : "Saqlandi"); refreshOnline(); },
+  onCame: v => { const b = S.on.list.find(x => x.id === v); if (!b) return;
+    const d = String(b.clientPhone).replace(/\D/g,"");
+    let c = DB.clients.find(x => phoneLink(x.phone).replace(/\D/g,"").endsWith(d.slice(-9)));
+    if (!c) { c = { id: uid(), name: b.clientName, phone: showPhone(d), tg:"", note:"Onlayn bron orqali", createdAt: today() }; DB.clients.push(c); persist(); }
+    S.day = today(); newVisitForm(c.id); S.F.bookingId = b.id;
+    const sv = ST().services.find(x => x.name === b.service); S.F.items = [{ sid: sv ? sv.id : null, name: b.service, price: b.price }]; render(); },
+  shareMe: () => { const url = `https://t.me/${PLATFORM.MIJOZ_BOT}?startapp=m_${AUTH.user.id}`;
+    openLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent("Menga onlayn yoziling 💈")}`); },
+  botSend: async (v, el) => { const c = clientById(v); if (!c) return; const text = msgText(c, el.dataset.k, el.dataset.x);
+    const j = await api("usta_notify", { phone: c.phone, text }).catch(() => ({ error: "Internet xatosi" }));
+    if (j.ok) { haptic("success"); toast("Mijoz botiga yuborildi ✓"); markReminded(v, el.dataset.k, el.dataset.x); render(); } else { haptic("warning"); toast(j.error || "Yuborilmadi"); } },
+  pfActive: v => { S.pf.active = v === "1"; render(); },
+  pfOff: v => { const d = +v, a = S.pf.daysOff, i = a.indexOf(d); i >= 0 ? a.splice(i,1) : a.push(d); render(); },
+  pfStep: v => { S.pf.step = +v; render(); },
+  pfSvcAdd: () => { S.pf.services.push({ name:"", price:"", duration:30 }); render(); },
+  pfSvcDel: v => { S.pf.services.splice(+v,1); render(); },
+  pfLoc: () => { toast("Joylashuv aniqlanmoqda…"); getLocation(p => { if (p) { S.pf.lat = p.lat; S.pf.lng = p.lng; haptic("success"); toast("Joylashuv olindi"); render(); } }); },
+  shopLoc: () => { toast("Joylashuv aniqlanmoqda…"); getLocation(p => { if (p) { S.pf.shop.lat = p.lat; S.pf.shop.lng = p.lng; haptic("success"); toast("Joylashuv olindi"); render(); } }); },
+  addMaster: async () => { const d = String(S.pf.addPhone).replace(/\D/g,""); if (d.length < 9) { toast("Raqamni to'liq kiriting"); return; }
+    const j = await api("shop_add_master", { phone: d }); if (!j.ok) { haptic("error"); toast(j.error); return; }
+    S.shopMasters = j.list; S.pf.addPhone = ""; haptic("success"); toast("Usta qo'shildi"); render(); },
+  rmMaster: async v => { if (!(await ask("Usta sartaroshxonadan chiqarilsinmi?"))) return; const j = await api("shop_remove_master", { id: v }); if (j.ok) { S.shopMasters = j.list; render(); } else toast(j.error); },
   pickDay: v => { S.day = v; render(); },
   syncConnect: async () => { const Y = S.Y || {}; if (await connectSync(Y.url, Y.key)) { S.Y = null; render(); } },
   syncNow: () => { SYNC.pending = true; saveSync(); refreshSyncUi(); pushSync(); },
@@ -1265,6 +1541,10 @@ document.addEventListener("input", e => {
   const el = e.target.closest("[data-f]"); if (!el) return;
   const p = el.dataset.f.split("."), v = el.value;
   if (p[0] === "W") { S.W[p[1]] = v; return; }
+  if (p[0] === "au") { S.au[p[1]] = v; return; }
+  if (p[0] === "pf") { S.pf[p[1]] = v; return; }
+  if (p[0] === "pfs") { S.pf.services[+p[1]][p[2]] = v; return; }
+  if (p[0] === "shop") { S.pf.shop[p[1]] = v; return; }
   if (p[0] === "Y") { S.Y[p[1]] = v; return; }
   if (p[0] === "cSearch") { S.cSearch = v; document.getElementById("clist").innerHTML = clientsList(); return; }
   if (p[0] === "F" || p[0] === "A") { const P = p[0] === "F" ? S.F : S.A; P[p[1]] = v;
@@ -1280,6 +1560,12 @@ document.addEventListener("input", e => {
 function vfRefresh(){ const k = vfCalc(); const b = document.getElementById("vfBreak"); if (b) b.innerHTML = vfBreak(k); setMain(`Saqlash · ${money(k.total)}`, saveVisit); }
 applyTheme();
 render(true);
+if (loggedIn()) {
+  refreshOnline();
+  api("me").then(j => { if (j.ok) { AUTH.user = j.user; saveAuth(); } }).catch(() => {});
+  window._onInt = setInterval(refreshOnline, 60000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshOnline(); });
+}
 if (syncOn()) pullSync(true);
 else cloudLoad(c => { if (c && c.url && c.key) { SYNC = { url: c.url, key: c.key }; saveSync(); pullSync(); } });
 </script>

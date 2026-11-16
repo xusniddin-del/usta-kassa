@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Sartarosh topish</title>
+<meta name="theme-color" content="#45291A">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  color-scheme:dark;
+  --bgg:linear-gradient(180deg,#45291A 0%,#2B1A10 40%,#1B100A 100%);
+  --bg:#2B1A10; --card:#3A2618; --card2:#4B3222; --text:#FFF5EE; --hint:#C4AA97; --line:rgba(255,230,210,.10);
+  --fill:rgba(255,236,222,.08); --accent:#F47B3C; --accent2:#FF9A5C; --accent-soft:rgba(244,123,60,.18);
+  --green:#5BD69A; --green-soft:rgba(91,214,154,.14); --blue:#86B6FF; --blue-soft:rgba(134,182,255,.14);
+  --red:#FF8273; --red-soft:rgba(255,130,115,.14); --violet:#D3A6FF; --violet-soft:rgba(211,166,255,.14);
+  --amber:#FFC15E; --amber-soft:rgba(255,193,94,.14); --teal:#62D9D2; --teal-soft:rgba(98,217,210,.14);
+  --nav:#130A05; --shadow:0 10px 30px rgba(0,0,0,.28);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",system-ui,Roboto,sans-serif;
+}
+:root[data-theme=light]{
+  color-scheme:light;
+  --bgg:linear-gradient(180deg,#F7F3F0,#EEE8E3); --bg:#F3EFEB; --card:#FFFFFF; --card2:#F4EFEB; --text:#1C130E; --hint:#857669;
+  --line:rgba(40,20,10,.08); --fill:#F2EDE9; --accent-soft:rgba(244,123,60,.12); --accent2:#CF5418;
+  --green:#1C8F58; --green-soft:rgba(28,143,88,.1); --blue:#2766D6; --blue-soft:rgba(39,102,214,.09);
+  --red:#D63E30; --red-soft:rgba(214,62,48,.08); --violet:#7E46CC; --violet-soft:rgba(126,70,204,.09);
+  --amber:#B87800; --amber-soft:rgba(184,120,0,.1); --teal:#0F837E; --teal-soft:rgba(15,131,126,.1);
+  --nav:#17100B; --shadow:0 6px 20px rgba(60,30,10,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--text);font-family:var(--font);font-size:16px;line-height:1.35;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+a{color:inherit;text-decoration:none}
+input,select,textarea{font:inherit;color:var(--text)}
+#app{padding:4px 16px 120px}
+#device{max-width:480px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg) var(--bgg)}
+.fade{animation:fade .2s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ---- Asosiy konteyner ---- */
+@media (min-width:520px){ body{background:#120A05!important} :root[data-theme=light] body{background:#DDD3CA!important} #device{box-shadow:0 0 60px rgba(0,0,0,.35)} }
+body{background:var(--bg) var(--bgg) fixed;min-height:100vh}
+#mb{position:fixed;left:50%;transform:translateX(-50%);width:100%;max-width:480px;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));display:none;z-index:25;background:linear-gradient(180deg,transparent,var(--bg) 35%)}
+#mb.show{display:block}
+#mb button{display:block;width:100%;max-width:448px;margin:0 auto;height:56px;border-radius:28px;background:var(--accent);color:#fff;font-weight:700;font-size:17px;box-shadow:0 10px 24px rgba(244,123,60,.35);transition:transform .2s}
+#mb button:active{transform:scale(.98)}
+.tg #mb{display:none!important}
+#navSlot{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:20;pointer-events:none}
+#ovl{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:40}
+#ovl:empty{display:none}
+
+/* ---- Sarlavhalar ---- */
+.hdr{display:flex;align-items:center;gap:10px;margin:8px 0 16px;min-height:48px}
+.hdr .grow{flex:1;min-width:0}
+.hdr small{display:block;color:var(--hint);font-size:13px}
+.hdr b{display:block;font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top{display:flex;align-items:center;gap:10px;margin:8px 0 18px;min-height:44px}
+.top .grow{flex:1;min-width:0;text-align:center}
+.top h1{margin:0;font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sub{color:var(--hint);font-size:13px}
+.top .rgt{display:flex;gap:6px;min-width:44px;justify-content:flex-end}
+.ib{width:44px;height:44px;border-radius:50%;background:var(--card);display:grid;place-items:center;color:var(--text);flex:none;position:relative}
+.ib.acc{background:var(--accent);color:#fff;box-shadow:0 6px 16px rgba(244,123,60,.35)}
+.ib .rd{position:absolute;top:10px;right:11px;width:9px;height:9px;border-radius:50%;background:var(--accent);border:2px solid var(--card)}
+.backfb{display:none!important}
+h2.sec{font-size:18px;font-weight:700;margin:24px 2px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+h2.sec small{font-size:13px;color:var(--hint);font-weight:500}
+h2.sec button{color:var(--accent2);font-size:14px;font-weight:600}
+
+/* ---- Hero karta ---- */
+.hero{position:relative;overflow:hidden;border-radius:26px;padding:20px;color:#fff;background:linear-gradient(135deg,#F7894A 0%,#E2632A 45%,#9A4116 100%);box-shadow:0 14px 30px rgba(196,82,28,.25);min-height:140px}
+.hero>*{position:relative;z-index:1}
+.hero::after{content:"";position:absolute;right:-34px;bottom:-46px;width:210px;height:210px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.1' stroke-linecap='round'%3E%3Ccircle cx='6' cy='6' r='3'/%3E%3Ccircle cx='6' cy='18' r='3'/%3E%3Cpath d='M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12'/%3E%3C/svg%3E") no-repeat center/contain;opacity:.2;transform:rotate(-18deg);z-index:0}
+.hero.ph{background:linear-gradient(90deg,rgba(20,10,5,.9),rgba(20,10,5,.5) 62%,rgba(20,10,5,.2)),var(--ph) center/cover;box-shadow:var(--shadow)}
+.hero.ph::after,.hero.ph .glow{display:none}
+.hero .glow{position:absolute;left:-60px;top:-90px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%);z-index:0}
+.hero .lbl{font-size:14px;color:rgba(255,255,255,.85)}
+.hero .big{font-size:34px;font-weight:750;letter-spacing:-.5px;margin:4px 0 12px;line-height:1.1}
+.hero .row2{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;background:rgba(255,255,255,.18);color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pill i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.hero .nav2{position:absolute;top:14px;right:14px;display:flex;gap:6px;z-index:2}
+.hero .nav2 button{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;display:grid;place-items:center}
+.hero .cta{margin-top:16px;height:46px;padding:0 20px 0 14px;border-radius:23px;background:#fff;color:#B84A18;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.hero.ph .cta{background:var(--accent);color:#fff}
+
+/* ---- Hafta tasmasi, tezkor tugmalar, kassa ---- */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:0 0 14px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0 6px;border-radius:30px;background:var(--fill);border:1px solid var(--line);transition:background .2s}
+.wd span{font-size:12px;color:var(--hint)}
+.wd b{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--card2);font-weight:650;font-size:15px}
+.wd.on{background:var(--accent);border-color:var(--accent)}
+.wd.on span{color:#fff}
+.wd.on b{background:#fff;color:#C2521E;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.wd.fut{opacity:.45}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.qa button{position:relative;height:76px;border-radius:20px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:12.5px;font-weight:600}
+.qa button svg{width:22px;height:22px;color:var(--accent2)}
+.qa button.on{background:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(244,123,60,.3)}
+.qa button.on svg{color:#fff}
+.qa .dot,.pnav .dot{position:absolute;top:5px;right:7px;min-width:18px;height:18px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px;font-style:normal}
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kt{background:var(--card);border-radius:20px;padding:12px;display:flex;align-items:center;gap:11px;text-align:left;min-height:66px;width:100%}
+.ki{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;flex:none}
+.ki svg{width:20px;height:20px}
+.kt>span:last-child{min-width:0}
+.kt .kl{font-size:12.5px;color:var(--hint);display:block}
+.kt .kv{font-size:17px;font-weight:700;white-space:nowrap;display:block;overflow:hidden;text-overflow:ellipsis}
+
+/* ---- Pastki suzuvchi menyu ---- */
+.pnav{pointer-events:auto;display:flex;gap:6px;padding:7px;border-radius:40px;background:var(--nav);box-shadow:0 14px 34px rgba(0,0,0,.38)}
+.pnav button{height:48px;min-width:48px;border-radius:24px;background:rgba(255,255,255,.08);color:#fff;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;transition:background .2s}
+.pnav button.on{background:#fff;color:#D2581C;padding:0 16px 0 6px;font-weight:650;font-size:14px}
+.pnav .ni{width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
+.pnav .ni svg{width:21px;height:21px}
+.pnav button.on .ni{background:var(--accent);color:#fff}
+.pnav .dot{top:-4px;right:-3px;border:2px solid var(--nav)}
+
+/* ---- Kartalar va ro'yxatlar ---- */
+.card{background:var(--card);border-radius:20px;padding:14px 16px}
+.card.p0{padding:2px 16px}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:20px;padding:12px 14px;width:100%;text-align:left;min-height:64px}
+.item .mid{flex:1;min-width:0}
+.item .t1{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t2{font-size:13.5px;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .rt{text-align:right;flex:0 0 auto;max-width:46%}
+.item .rt b{display:block;white-space:nowrap;font-weight:700}
+.lrow{display:flex;align-items:center;gap:14px;padding:0 16px;min-height:62px;width:100%;text-align:left;background:var(--card);border-radius:20px}
+.lrow .sq{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;color:#fff;flex:none}
+.lrow .sq svg{width:19px;height:19px}
+.lrow .lt{flex:1;min-width:0;font-weight:600}
+.lrow .lv{color:var(--hint);white-space:nowrap}
+.lrow .chev{color:var(--hint);display:grid}
+.lrow .chev svg{width:16px;height:16px}
+.badge{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:11px;background:var(--accent);color:#fff;font-size:13px;font-weight:700;padding:0 7px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:center}
+.row:last-child{border-bottom:0}
+.row .k{color:var(--hint)}
+.row .v{font-weight:650;text-align:right;white-space:nowrap}
+.row.tot .k,.row.tot .v{color:var(--text);font-size:17px;font-weight:750}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.tile{background:var(--card);border-radius:18px;padding:11px 12px;text-align:left;min-height:64px;display:flex;flex-direction:column;justify-content:space-between}
+.tile .l{font-size:12.5px;color:var(--hint)}
+.tile .n{font-size:18px;font-weight:700}
+
+.av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#F7894A,#B84A18);color:#fff;display:grid;place-items:center;font-weight:700;font-size:15px;flex:none;background-size:cover;background-position:center}
+.av.me{width:48px;height:48px;border:2px solid rgba(255,255,255,.14)}
+.av.t{border-radius:14px;font-size:14px;flex-direction:column;line-height:1.1;width:52px;background:var(--accent-soft);color:var(--accent2);font-weight:700}
+.tags{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tag{font-size:11.5px;font-weight:650;border-radius:7px;padding:2px 7px;background:var(--fill);color:var(--hint);white-space:nowrap}
+.tag.cash{background:var(--green-soft);color:var(--green)}
+.tag.card{background:var(--blue-soft);color:var(--blue)}
+.tag.debt{background:var(--red-soft);color:var(--red)}
+.tag.disc{background:var(--violet-soft);color:var(--violet)}
+.tag.acc{background:var(--accent-soft);color:var(--accent2)}
+
+.btn{min-height:44px;border-radius:22px;padding:0 18px;font-weight:650;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:7px;transition:transform .2s,opacity .2s;white-space:nowrap}
+.btn:active{transform:scale(.97)}
+.btn.acc{background:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(244,123,60,.28)}
+.btn.soft{background:var(--accent-soft);color:var(--accent2)}
+.btn.gray{background:var(--fill);color:var(--text)}
+.btn.card{background:var(--card);color:var(--text)}
+.btn.red{background:var(--red-soft);color:var(--red)}
+.btn.green{background:var(--green-soft);color:var(--green)}
+.btn.blue{background:var(--blue-soft);color:var(--blue)}
+.btn.sm{min-height:38px;font-size:14px;padding:0 14px;border-radius:19px}
+.btn.block{width:100%}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns>.btn{flex:1}
+.savebar,.fab{display:none!important}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
+.chips.scroll::-webkit-scrollbar{display:none}
+.chip{min-height:38px;border-radius:19px;padding:0 15px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:14px;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:background .2s,color .2s}
+.card .chip{background:var(--fill)}
+.chip.on,.card .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip small{font-weight:500;opacity:.75}
+.srch{display:flex;gap:10px;align-items:center}
+.sbox{flex:1;display:flex;align-items:center;gap:8px;height:50px;border-radius:25px;background:var(--card);padding:0 16px;color:var(--hint)}
+.sbox input{flex:1;border:0;background:transparent;outline:none;font-size:15px;height:100%;min-width:0}
+
+.field{display:block;margin-top:12px}
+.field:first-child{margin-top:0}
+.field>span{display:block;font-size:13px;color:var(--hint);margin:0 0 6px 4px}
+.inp{width:100%;height:50px;border-radius:16px;border:1px solid var(--line);background:var(--fill);padding:0 16px;outline:none;font-size:16px;transition:border-color .2s}
+textarea.inp{height:auto;min-height:88px;padding:12px 16px;resize:vertical}
+.inp:focus{border-color:var(--accent)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{font-size:13px;color:var(--hint);margin:8px 4px 0}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:var(--fill);border-radius:22px;padding:4px}
+.seg button{min-height:38px;border-radius:19px;font-weight:600;font-size:14px;color:var(--hint);transition:background .2s,color .2s}
+.seg button.on{background:var(--accent);color:#fff}
+.irow{display:grid;grid-template-columns:1fr 112px 40px;gap:8px;align-items:center;margin-top:8px}
+.irow .inp{height:46px}
+.picked{display:flex;align-items:center;gap:12px}
+.res{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.res button{display:flex;align-items:center;gap:10px;padding:6px 12px 6px 6px;border-radius:24px;background:var(--fill);text-align:left;min-height:46px}
+.res .av{width:34px;height:34px;font-size:13px}
+.res svg{color:var(--accent2)}
+.phrow{display:flex;gap:12px;align-items:center}
+.phrow .grow{flex:1;min-width:0}
+.phprev{width:68px;height:50px;border-radius:14px;background:linear-gradient(135deg,#F7894A,#9A4116);background-size:cover;background-position:center;display:grid;place-items:center;color:#fff;flex:none}
+
+.banner{display:flex;align-items:center;gap:14px;background:var(--card);border-radius:20px;padding:14px 16px;margin-top:10px;width:100%;text-align:left}
+.banner>svg:first-child{color:var(--accent2);flex:none}
+.banner .grow{flex:1;min-width:0}
+.banner b{display:block;font-weight:650}
+.banner span{font-size:13px;color:var(--hint)}
+.banner>svg:last-child{color:var(--hint)}
+.empty{text-align:center;padding:30px 18px;background:var(--card);border-radius:22px}
+.empty .ei{width:60px;height:60px;border-radius:50%;background:var(--accent-soft);color:var(--accent2);display:grid;place-items:center;margin:0 auto 12px}
+.empty b{display:block;font-size:16px;margin-bottom:4px}
+.empty p{margin:0;color:var(--hint);font-size:14px}
+.empty .btn{margin-top:14px}
+
+.chart{display:flex;align-items:flex-end;gap:2px;height:120px;padding-top:6px}
+.chart div{flex:1;background:linear-gradient(180deg,var(--accent2),var(--accent));border-radius:4px 4px 0 0;min-height:2px}
+.chart div.z{background:var(--fill)}
+.chart-x{display:flex;justify-content:space-between;font-size:11px;color:var(--hint);margin-top:6px}
+.hbar{margin:10px 0}
+.hbar .hl{display:flex;justify-content:space-between;font-size:14.5px;margin-bottom:6px}
+.hbar .hl b{font-weight:650}
+.hbar .tr{height:8px;background:var(--fill);border-radius:99px;overflow:hidden}
+.hbar .tr i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.delta{font-size:12px;font-weight:650;border-radius:6px;padding:2px 6px}
+.delta.up{background:var(--green-soft);color:var(--green)}
+.delta.dn{background:var(--red-soft);color:var(--red)}
+.prof{display:flex;align-items:center;gap:14px}
+.prof .av{width:64px;height:64px;font-size:23px}
+.prof h3{margin:0;font-size:20px}
+.prof .sub{color:var(--hint);font-size:14px}
+.stat4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.stat4 div{background:var(--fill);border-radius:14px;padding:10px 12px}
+.stat4 small{display:block;color:var(--hint);font-size:12px}
+.stat4 b{font-size:15.5px}
+
+/* ---- Kirish (welcome) va PIN ---- */
+.wel{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 22px 40px;color:#fff;overflow:hidden;background:radial-gradient(120% 75% at 75% 22%,#C45A21 0%,#5E3016 46%,#1A0F08 100%)}
+.wel.ph{background:linear-gradient(180deg,rgba(14,7,3,.15) 0%,rgba(14,7,3,.5) 42%,rgba(14,7,3,.96) 100%),var(--ph) center/cover}
+.wel-art{position:absolute;top:40px;right:-60px;width:290px;height:290px;color:rgba(255,255,255,.13);transform:rotate(-16deg)}
+.wel.ph .wel-art{display:none}
+.bars{position:absolute;top:calc(18px + env(safe-area-inset-top));left:22px;right:22px;display:flex;gap:8px}
+.bars i{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.25)}
+.bars i.on{background:#fff}
+.wel h1{font-size:29px;line-height:1.15;font-weight:750;margin:0 0 10px;letter-spacing:.2px;text-transform:uppercase}
+.wel p{color:rgba(255,255,255,.74);font-size:15px;margin:0 0 14px}
+.wel .field>span{color:rgba(255,255,255,.7)}
+.wel .inp{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16);color:#fff}
+.wel .inp::placeholder{color:rgba(255,255,255,.45)}
+.slide{margin-top:18px;height:66px;border-radius:33px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);display:flex;align-items:center;padding:6px;gap:12px;color:#fff;width:100%;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.slide .sc{width:54px;height:54px;border-radius:50%;background:var(--accent);display:grid;place-items:center;flex:none;box-shadow:0 6px 16px rgba(244,123,60,.45)}
+.slide b{flex:1;text-align:center;font-size:17px;font-weight:600;margin-right:-30px}
+.slide .ar{opacity:.75;padding-right:18px;font-size:18px;letter-spacing:-3px}
+.wel .lnk{display:block;margin:10px auto 0;color:rgba(255,255,255,.78);font-size:14px;text-decoration:underline;min-height:40px}
+.wel.lockv{justify-content:center;align-items:center;gap:18px;padding-bottom:20px}
+.wel.lockv .ei{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.12);display:grid;place-items:center;color:#fff}
+.dots{display:flex;gap:16px}
+.dots i{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.6)}
+.dots i.f{background:var(--accent);border-color:var(--accent)}
+.pad{display:grid;grid-template-columns:repeat(3,74px);gap:16px 22px}
+.pad button{height:74px;border-radius:50%;background:rgba(255,255,255,.1);font-size:28px;font-weight:500;color:#fff;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+
+/* ---- v0.3: kirish, onlayn bronlar, profil ---- */
+.wel.auth{justify-content:flex-start;overflow-y:auto;padding-top:0}
+.wel-body{margin-top:auto;padding-top:72px;position:relative;z-index:1}
+.wel-art{pointer-events:none}
+.wskip{position:absolute;top:calc(14px + env(safe-area-inset-top));right:16px;z-index:3;color:#fff;background:rgba(255,255,255,.14);border-radius:18px;padding:0 14px;height:36px;font-size:14px;font-weight:600}
+.okph{display:flex;align-items:center;gap:10px;background:rgba(91,214,154,.16);color:#8BE8BA;border-radius:16px;padding:12px 14px;font-weight:600;margin-top:4px}
+.wel .seg{background:rgba(255,255,255,.08)}
+.wel .seg button{color:rgba(255,255,255,.72)}
+.wel .seg button.on{color:#fff}
+.wel .btn.ghost{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);width:100%;min-height:52px;border-radius:26px}
+.wel .note{color:rgba(255,255,255,.65)}
+.step{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7);margin:16px 4px 8px}
+.step i{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-style:normal;font-weight:700;font-size:12px;display:grid;place-items:center}
+.bk{background:var(--card);border-radius:20px;padding:14px}
+.bk-h{display:flex;gap:12px;align-items:center}
+.bk-h .grow{flex:1;min-width:0}
+.bk-h b{display:block}
+.bk-h small{color:var(--hint);font-size:13px}
+.bk .btns{margin-top:12px}
+.st{font-size:11.5px;font-weight:700;border-radius:7px;padding:3px 8px;white-space:nowrap}
+.st.pending{background:var(--amber-soft);color:var(--amber)} .st.confirmed{background:var(--green-soft);color:var(--green)}
+.st.rejected,.st.cancelled,.st.noshow,.st.expired{background:var(--red-soft);color:var(--red)} .st.done{background:var(--blue-soft);color:var(--blue)}
+.locbox{display:flex;align-items:center;gap:10px;background:var(--fill);border-radius:16px;padding:10px 12px;margin-top:10px;font-size:14px}
+.locbox .grow{flex:1;min-width:0}
+.pphoto{width:84px;height:84px;border-radius:24px;background:linear-gradient(135deg,#F7894A,#B84A18);background-size:cover;background-position:center;display:grid;place-items:center;color:#fff;font-size:28px;font-weight:700;flex:none}
+.toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-16px);background:rgba(20,12,6,.92);color:#fff;padding:12px 18px;border-radius:16px;font-size:14px;opacity:0;transition:.2s;z-index:60;pointer-events:none;max-width:86%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.muted{color:var(--hint)}
+.pos{color:var(--green)!important} .neg{color:var(--red)!important}
+@media print{#navSlot,#mb,.noprint{display:none!important} body{background:#fff;padding:0;display:block}}
+</style>
+<style>
+/* ---- Mijoz ilovasi qo'shimchalari ---- */
+.mlist{display:flex;flex-direction:column;gap:12px}
+.mcard{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:22px;padding:10px;width:100%;text-align:left;position:relative}
+.mph{width:78px;height:78px;border-radius:18px;flex:none;background:linear-gradient(135deg,#F7894A,#9A4116);background-size:cover;background-position:center;display:grid;place-items:center;color:#fff;font-weight:700;font-size:24px}
+.mcard .grow{flex:1;min-width:0;text-align:left}
+.mcard b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcard .sub{font-size:13px;color:var(--hint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcard .meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.chipx{font-size:12px;font-weight:650;border-radius:8px;padding:3px 8px;background:var(--fill);color:var(--hint);white-space:nowrap}
+.chipx.acc{background:var(--accent-soft);color:var(--accent2)}
+.heart{width:40px;height:40px;border-radius:50%;background:var(--fill);display:grid;place-items:center;color:var(--hint);flex:none}
+.heart.on{color:#FF5A5A;background:rgba(255,90,90,.14)}
+.favrow{display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 4px;scrollbar-width:none}
+.favrow::-webkit-scrollbar{display:none}
+.fav{flex:none;width:96px;text-align:center}
+.fav .mph{width:96px;height:96px;border-radius:24px;font-size:28px}
+.fav span{display:block;font-size:13px;font-weight:600;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mhero{position:relative;height:300px;margin:-4px -16px 0;background:linear-gradient(135deg,#F7894A 0%,#C2521E 55%,#5E2A10 100%);background-size:cover;background-position:center;display:grid;place-items:center;color:rgba(255,255,255,.9);font-size:64px;font-weight:750}
+.mhero.ph{color:transparent}
+.mhero .bar{position:absolute;top:12px;left:16px;right:16px;display:flex;justify-content:space-between}
+.mhero .bar button{width:44px;height:44px;border-radius:50%;background:rgba(20,10,5,.45);color:#fff;display:grid;place-items:center;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.mhero .bar button.on{color:#FF6B6B}
+.mbody{position:relative;margin:-34px -16px 0;background:var(--bg);border-radius:30px 30px 0 0;padding:20px 16px 0}
+.mbody h1{margin:0;font-size:24px;font-weight:750}
+.mbody .sub{color:var(--hint);font-size:14px;margin-top:4px}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.acts a,.acts button{height:70px;border-radius:18px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-size:12.5px;font-weight:600}
+.acts svg{width:20px;height:20px;color:var(--accent2)}
+.acts .on{background:var(--accent);color:#fff}.acts .on svg{color:#fff}
+.svc{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border-radius:20px;padding:14px;border:2px solid transparent;transition:border-color .2s,background .2s}
+.svc.on{border-color:var(--accent);background:var(--accent-soft)}
+.svc .grow{flex:1;min-width:0}
+.svc b{display:block}
+.svc small{color:var(--hint);font-size:13px}
+.svc .pr{font-weight:750;white-space:nowrap}
+.svc .ck{width:24px;height:24px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;flex:none}
+.svc.on .ck{background:var(--accent);border-color:var(--accent);color:#fff}
+.dstrip{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:2px 16px 4px;scrollbar-width:none}
+.dstrip::-webkit-scrollbar{display:none}
+.dstrip .wd{flex:none;width:54px}
+.wd.off{opacity:.35}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.slot{height:46px;border-radius:23px;background:var(--card);border:1px solid var(--line);font-weight:600;font-size:15px;transition:background .2s}
+.slot.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.sumbar{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:20px;padding:14px 16px;margin-top:16px}
+.sumbar svg{color:var(--accent2);flex:none}
+.sumbar .grow{flex:1;min-width:0}
+.sumbar small{display:block;color:var(--hint)}
+.searchrow{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.done .ring{width:96px;height:96px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;margin:30px auto 16px;box-shadow:0 10px 30px rgba(244,123,60,.4);animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:none;opacity:1}}
+.done h1{text-align:center;margin:0 0 6px;font-size:23px}
+.done p{text-align:center;color:var(--hint);margin:0 0 18px}
+.skel{height:98px;border-radius:22px;background:linear-gradient(90deg,var(--card),var(--card2),var(--card));background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<div id="device">
+  <div id="scroller"><div id="app"></div></div>
+  <div id="mb"><button type="button" id="mbBtn"></button></div>
+  <div id="navSlot"></div>
+  <div id="ovl"></div>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+<script>
+/* =========================================================
+   SARTAROSH TOPISH — mijozlar uchun Telegram Mini App (v0.3)
+   Yaqin sartaroshlar, sevimlilar, onlayn yozilish.
+   ========================================================= */
+
+/* ============ PLATFORMA — bir marta to'ldiring ============ */
+const PLATFORM = {
+  API_URL: "https://script.google.com/macros/s/AKfycbwc-75LQ4oS_w1kKtrZomN5vCqbC2oDjtzUt7SkTse-aQbuAlJzuZxexvlik_gyJ_2EKg/exec",      // Platform.gs Web app havolasi: https://script.google.com/macros/s/…/exec
+  USTA_BOT: ""      // usta botining username'i (@ siz) — "Siz sartaroshmisiz?" havolasi uchun
+  , MIJOZ_BOT: ""   // shu (mijoz) botning username'i — usta sahifasini ulashish havolasi uchun
+};
+
+/* ---------- Telegram ---------- */
+const tg = window.Telegram && window.Telegram.WebApp;
+const IN_TG = !!(tg && tg.initData);
+document.documentElement.classList.add(IN_TG ? "tg" : "nontg");
+document.documentElement.dataset.theme = "dark";
+if (IN_TG) { tg.ready(); tg.expand(); try { tg.setHeaderColor("#45291A"); tg.setBackgroundColor("#1B100A"); tg.disableVerticalSwipes && tg.disableVerticalSwipes(); tg.BackButton.onClick(() => goBack()); } catch(e){} }
+function haptic(k){ try { if (!IN_TG) return; if (k==="success"||k==="error"||k==="warning") tg.HapticFeedback.notificationOccurred(k); else tg.HapticFeedback.impactOccurred("light"); } catch(e){} }
+
+/* ---------- Yordamchilar ---------- */
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseYmd = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y,m-1,d); };
+const addDays = (s,n) => { const d = parseYmd(s); d.setDate(d.getDate()+n); return ymd(d); };
+const today = () => ymd(new Date());
+const toMin = t => { const [h,m] = String(t).split(":").map(Number); return h*60+m; };
+const toHM = m => pad(Math.floor(m/60))+":"+pad(m%60);
+const fmt = n => String(Math.round(+n||0)).replace(/\B(?=(\d{3})+(?!\d))/g," ");
+const money = n => fmt(n) + " so'm";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const initials = n => (n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]).join("").toUpperCase() || "?";
+const showPhone = d => { d = String(d||"").replace(/\D/g,""); return d.length === 12 ? `+${d.slice(0,3)} ${d.slice(3,5)} ${d.slice(5,8)} ${d.slice(8,10)} ${d.slice(10)}` : (d ? "+"+d : ""); };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const WD = ["Yakshanba","Dushanba","Seshanba","Chorshanba","Payshanba","Juma","Shanba"];
+const WDS = ["Ya","Du","Se","Ch","Pa","Ju","Sh"];
+const MON = ["yanvar","fevral","mart","aprel","may","iyun","iyul","avgust","sentabr","oktabr","noyabr","dekabr"];
+const dLabel = s => { const d = parseYmd(s); return `${d.getDate()}-${MON[d.getMonth()]}`; };
+const dLong = s => { const d = parseYmd(s); return `${WD[d.getDay()]}, ${d.getDate()}-${MON[d.getMonth()]}`; };
+const dWhen = s => s === today() ? "Bugun" : s === addDays(today(),1) ? "Ertaga" : dLong(s);
+function toast(m){ const t = document.getElementById("toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(()=>t.classList.remove("show"), 2400); }
+function ask(m){ return new Promise(r => { if (IN_TG && tg.showConfirm) { try { tg.showConfirm(m, ok => r(!!ok)); return; } catch(e){} } r(window.confirm(m)); }); }
+function openLink(url){ if (IN_TG) { try { url.startsWith("https://t.me/") ? tg.openTelegramLink(url) : tg.openLink(url); return; } catch(e){} } window.open(url, "_blank"); }
+function avBg(n){
+  const g = [["#FF885E","#FF516A"],["#FFCD6A","#FFA85C"],["#82B1FF","#665FFF"],["#A0DE7E","#54CB68"],["#53EDD6","#28C9B7"],["#72D5FD","#2A9EF1"],["#E0A2F3","#D669ED"]];
+  let h = 0; for (const c of String(n||"")) h = (h*31 + c.charCodeAt(0))|0;
+  const [a,b] = g[Math.abs(h) % 7]; return `background:linear-gradient(${a},${b});color:#fff`;
+}
+const LS = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch(e){ return d; } }, set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+
+/* ---------- Ikonkalar ---------- */
+const ic = (p, s=20) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const I = {
+  home: ic('<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',22),
+  cal: ic('<rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/>',22),
+  heart: ic('<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',22),
+  heartF: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></svg>',
+  user: ic('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',22),
+  search: ic('<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>'),
+  pin: ic('<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>'),
+  left: ic('<path d="M15 18l-6-6 6-6"/>'), right: ic('<path d="M9 18l6-6-6-6"/>'),
+  phone: ic('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/>'),
+  map: ic('<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>'),
+  send: ic('<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>'),
+  scissors: ic('<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/>',22),
+  check: ic('<path d="M5 12l5 5L20 7"/>',16),
+  bigcheck: ic('<path d="M5 12l5 5L20 7"/>',46),
+  bell: ic('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',22),
+  x: ic('<path d="M18 6 6 18M6 6l12 12"/>',18),
+  clock: ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')
+};
+const ART_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width=".8" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.12 15.88M14.47 14.48 20 20M8.12 8.12 12 12"/></svg>';
+
+/* ---------- Hisob va API ---------- */
+const AUTH_KEY = "mijoz_auth_v1";
+let AUTH = LS.get(AUTH_KEY, {});
+const saveAuth = () => LS.set(AUTH_KEY, AUTH);
+const loggedIn = () => !!AUTH.token;
+async function api(action, data){
+  if (!PLATFORM.API_URL) throw new Error("API_URL");
+  const r = await fetch(PLATFORM.API_URL, { method:"POST", body: JSON.stringify(Object.assign({ action, token: AUTH.token || "", initData: IN_TG ? tg.initData : "" }, data || {})) });
+  const j = await r.json();
+  if (j && j.error === "auth") { AUTH = {}; saveAuth(); toast("Qaytadan kiring"); render(true); }
+  return j;
+}
+
+/* ---------- Holat ---------- */
+const S = { screen:"home", stack:[], q:"", loc: LS.get("mijoz_loc", null), list:[], loading:false, loaded:false,
+            favIds: new Set(), favList:[], my:[], myLoaded:false, master:null, sel:{ service:null, date:null, time:null, note:"" },
+            slots:[], slotsKey:"", slotsLoading:false, au:null, startParam: IN_TG ? (tg.initDataUnsafe.start_param || "") : (new URLSearchParams(location.search).get("m") ? "m_" + new URLSearchParams(location.search).get("m") : "") };
+const TABS = ["home","bookings","favs","profile"];
+function go(s){ S.stack.push(S.screen); S.screen = s; render(true); }
+function tab(s){ S.stack = []; S.screen = s; if (s === "bookings") loadMy(); if (s === "favs") loadFavs(); render(true); }
+function goBack(){ haptic(); S.screen = S.stack.pop() || "home"; render(true); }
+
+/* ---------- Ma'lumot yuklash ---------- */
+async function loadList(){
+  S.loading = true; render();
+  try { const j = await api("search", Object.assign({ q: S.q }, S.loc || {})); if (j.ok) S.list = j.list; else toast(j.error); } catch(e){ toast("Internet xatosi"); }
+  S.loading = false; S.loaded = true; render();
+}
+async function loadFavs(){ if (!loggedIn()) return; try { const j = await api("favs", S.loc || {}); if (j.ok) { S.favIds = new Set(j.ids); S.favList = j.list; render(); } } catch(e){} }
+async function loadMy(){ if (!loggedIn()) return; try { const j = await api("my_bookings"); if (j.ok) { S.my = j.list; S.myLoaded = true; render(); } } catch(e){} }
+async function loadSlots(){
+  const m = S.master, sv = m && m.services.find(x => x.name === S.sel.service);
+  if (!m || !sv || !S.sel.date) return;
+  const key = m.id + S.sel.date + sv.duration; if (S.slotsKey === key && !S.slotsLoading) return;
+  S.slotsKey = key; S.slotsLoading = true; S.slots = []; render();
+  try { const j = await api("slots", { masterId: m.id, date: S.sel.date, duration: sv.duration }); if (S.slotsKey === key) { S.slots = j.ok ? j.slots : []; } } catch(e){ toast("Internet xatosi"); }
+  S.slotsLoading = false; render();
+}
+function getLocation(cb){
+  const fail = () => { toast("Joylashuvni olib bo'lmadi. Telefon sozlamalarida ruxsat bering"); cb(null); };
+  const viaBrowser = () => navigator.geolocation ? navigator.geolocation.getCurrentPosition(p => cb({ lat: p.coords.latitude, lng: p.coords.longitude }), fail, { enableHighAccuracy: false, timeout: 12000, maximumAge: 600000 }) : fail();
+  try {
+    const LM = IN_TG && tg.LocationManager;
+    if (LM && LM.init) return LM.init(() => { if (!LM.isLocationAvailable) return viaBrowser();
+      LM.getLocation(d => d ? cb({ lat: d.latitude, lng: d.longitude }) : (LM.isAccessRequested && !LM.isAccessGranted ? (toast("Joylashuvga ruxsat bering"), LM.openSettings()) : viaBrowser())); });
+  } catch(e){}
+  viaBrowser();
+}
+async function openMaster(id){
+  S.master = S.list.concat(S.favList).find(m => m.id === id) || null;
+  S.sel = { service:null, date:null, time:null, note:"" }; S.slots = []; S.slotsKey = "";
+  go("master");
+  try { const j = await api("master", Object.assign({ id }, S.loc || {})); if (j.ok) { S.master = j.master;
+    if (S.master.services.length === 1) S.sel.service = S.master.services[0].name;
+    S.sel.date = firstOpenDay(S.master); render(); loadSlots(); } else { toast(j.error); goBack(); } } catch(e){ toast("Internet xatosi"); }
+}
+function firstOpenDay(m){ for (let i = 0; i < 14; i++) { const d = addDays(today(), i); if (!m.daysOff.includes(parseYmd(d).getDay()) && !(i === 0 && toMin(m.workEnd) - 30 <= new Date().getHours()*60 + new Date().getMinutes())) return d; } return today(); }
+
+/* ---------- Umumiy bloklar ---------- */
+const empty = (t, p, btn, icon) => `<div class="empty fade"><div class="ei">${icon||I.scissors}</div><b>${esc(t)}</b><p>${esc(p)}</p>${btn||""}</div>`;
+const mph = (m, cls) => `<div class="mph ${cls||""}" style="${m.photo ? `background-image:url(${m.photo})` : avBg(m.name)}">${m.photo ? "" : esc(initials(m.name))}</div>`;
+function mcard(m){
+  const fav = S.favIds.has(m.id);
+  return `<div class="mcard fade"><button style="display:contents;text-align:left" data-a="openMaster" data-v="${m.id}">${mph(m)}
+    <span class="grow"><b>${esc(m.name)}</b><span class="sub">${esc(m.shopName || m.address || "Mustaqil usta")}</span>
+    <span class="meta">${m.dist != null ? `<span class="chipx acc">📍 ${m.dist < 1 ? Math.round(m.dist*1000) + " m" : m.dist + " km"}</span>` : ""}${m.priceFrom ? `<span class="chipx">${fmt(m.priceFrom)} so'mdan</span>` : ""}<span class="chipx">${m.workStart}–${m.workEnd}</span></span></span></button>
+    <button class="heart ${fav?"on":""}" data-a="fav" data-v="${m.id}" aria-label="${fav?"Sevimlilardan olish":"Sevimlilarga qo'shish"}" aria-pressed="${fav}">${fav ? I.heartF : I.heart}</button></div>`;
+}
+const ST_LABEL = { pending:"Tasdiqlash kutilmoqda", confirmed:"Tasdiqlandi", rejected:"Rad etildi", cancelled:"Bekor qilindi", done:"Bajarildi", noshow:"Kelmadi", expired:"Javob berilmadi" };
+const ST_CLS = { pending:"tag acc", confirmed:"tag cash", rejected:"tag debt", cancelled:"tag debt", done:"tag card", noshow:"tag debt", expired:"tag" };
+function tabbar(){
+  if (!TABS.includes(S.screen)) return "";
+  const up = S.my.filter(b => (b.status === "pending" || b.status === "confirmed") && b.date >= today()).length;
+  const items = [["home","Asosiy",I.home],["bookings","Bronlarim",I.cal,up],["favs","Sevimli",I.heart],["profile","Profil",I.user]];
+  return `<nav class="pnav noprint" aria-label="Menyu">${items.map(([id,l,i,b]) => { const on = S.screen === id;
+    return `<button data-a="tab" data-v="${id}" class="${on?"on":""}" aria-label="${l}"><span class="ni">${i}</span>${on ? `<span>${l}</span>` : ""}${b && !on ? `<span class="dot">${b}</span>` : ""}</button>`; }).join("")}</nav>`;
+}
+
+/* ================= ASOSIY ================= */
+function vHome(){
+  const name = AUTH.user ? AUTH.user.name : "";
+  const next = S.my.filter(b => (b.status === "pending" || b.status === "confirmed") && b.date >= today()).sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time))[0];
+  return `<div class="hdr"><div class="av me" style="${avBg(name)}">${esc(initials(name))}</div><div class="grow"><small>Xush kelibsiz 👋</small><b>${esc(name || "Mehmon")}</b></div>
+    <button class="ib" data-a="tab" data-v="bookings" aria-label="Bronlarim">${I.bell}${next ? '<i class="rd"></i>' : ""}</button></div>
+  <div class="searchrow"><label class="sbox">${I.search}<input data-f="q" value="${esc(S.q)}" placeholder="Usta, sartaroshxona yoki hudud…" aria-label="Qidirish" enterkeyhint="search"></label>
+    <button class="ib ${S.loc ? "acc" : ""}" data-a="locate" aria-label="Yaqinlarni ko'rsatish">${I.pin}</button></div>
+  ${next ? `<button class="banner" data-a="tab" data-v="bookings">${I.cal}<div class="grow"><b>${dWhen(next.date)}, ${next.time} — ${esc(next.master ? next.master.name : "")}</b><span>${esc(next.service)} · ${ST_LABEL[next.status]}</span></div>${I.right}</button>` : ""}
+  ${!S.loc ? `<section class="hero" style="margin-top:12px"><div class="glow"></div><div class="lbl">Navbatsiz, qulay vaqtda</div><div class="big" style="font-size:26px">Yaqin sartaroshni toping</div>
+    <div class="row2"><span class="pill">1 daqiqada yozilish</span><span class="pill">Botga eslatma</span></div><button class="cta" data-a="locate">${I.pin} Yaqinlarni ko'rsatish</button></section>` : ""}
+  ${S.favList.length ? `<h2 class="sec">Sevimli ustalarim <button data-a="tab" data-v="favs">Hammasi</button></h2>
+  <div class="favrow">${S.favList.map(m => `<button class="fav" data-a="openMaster" data-v="${m.id}">${mph(m)}<span>${esc(m.name)}</span></button>`).join("")}</div>` : ""}
+  <h2 class="sec">${S.loc ? "Yaqin sartaroshlar" : "Sartaroshlar"} <small>${S.loaded ? S.list.length + " ta" : ""}</small></h2>
+  ${S.loading && !S.list.length ? `<div class="mlist"><div class="skel"></div><div class="skel"></div><div class="skel"></div></div>`
+    : S.list.length ? `<div class="mlist">${S.list.map(mcard).join("")}</div>`
+    : empty(S.q ? "Hech narsa topilmadi" : "Hozircha sartarosh yo'q", S.q ? "Boshqa so'z bilan qidirib ko'ring." : "Tez orada shu yerda sartaroshlar paydo bo'ladi.")}
+  ${PLATFORM.USTA_BOT ? `<button class="btn card block" style="margin-top:16px" data-a="beMaster">${I.scissors} Siz sartaroshmisiz? Ro'yxatdan o'ting</button>` : ""}`;
+}
+
+/* ================= USTA SAHIFASI ================= */
+function vMaster(){
+  const m = S.master; if (!m) return `<div class="skel" style="height:300px;margin-top:10px"></div>`;
+  const fav = S.favIds.has(m.id), sv = m.services.find(x => x.name === S.sel.service);
+  const ph = m.photo || m.shopPhoto;
+  const days = Array.from({ length: 14 }, (_, i) => addDays(today(), i));
+  const mapUrl = m.lat && m.lng ? `https://maps.google.com/?q=${m.lat},${m.lng}` : (m.address ? `https://maps.google.com/?q=${encodeURIComponent(m.address)}` : "");
+  return `<div class="mhero ${ph ? "ph" : ""}" style="${ph ? `background-image:url(${ph})` : ""}">${ph ? "" : esc(initials(m.name))}
+    <div class="bar"><button data-a="back" aria-label="Orqaga">${I.left}</button><button class="${fav?"on":""}" data-a="fav" data-v="${m.id}" aria-label="Sevimli">${fav ? I.heartF : I.heart}</button></div></div>
+  <div class="mbody">
+    <h1>${esc(m.name)}</h1>
+    <div class="sub">${esc(m.shopName || "Mustaqil usta")}${m.dist != null ? ` · 📍 ${m.dist} km` : ""}</div>
+    ${m.address ? `<div class="sub">${esc(m.address)}</div>` : ""}
+    <div class="acts">
+      <a href="tel:+${String(m.phone).replace(/\D/g,"")}">${I.phone}<span>Qo'ng'iroq</span></a>
+      ${mapUrl ? `<button data-a="openUrl" data-v="${esc(mapUrl)}">${I.map}<span>Xarita</span></button>` : `<button disabled style="opacity:.4">${I.map}<span>Xarita</span></button>`}
+      <button data-a="shareMaster">${I.send}<span>Ulashish</span></button>
+      <button class="${fav?"on":""}" data-a="fav" data-v="${m.id}">${fav ? I.heartF : I.heart}<span>Sevimli</span></button>
+    </div>
+    ${m.bio ? `<p class="note" style="margin:14px 2px 0;font-size:14px">${esc(m.bio)}</p>` : ""}
+    <h2 class="sec">Xizmatni tanlang</h2>
+    <div class="list">${m.services.map(x => `<button class="svc ${x.name === S.sel.service ? "on" : ""}" data-a="selSvc" data-v="${esc(x.name)}"><span class="grow"><b>${esc(x.name)}</b><small>${x.duration} daqiqa</small></span><span class="pr">${fmt(x.price)}</span><span class="ck">${x.name === S.sel.service ? I.check : ""}</span></button>`).join("")}</div>
+    <h2 class="sec">Sana <small>${S.sel.date ? dLong(S.sel.date) : ""}</small></h2>
+    <div class="dstrip">${days.map(d => { const dt = parseYmd(d), off = m.daysOff.includes(dt.getDay());
+      return `<button class="wd ${d === S.sel.date ? "on" : ""} ${off ? "off" : ""}" data-a="selDate" data-v="${d}" ${off ? "disabled" : ""} aria-label="${dLong(d)}"><span>${d === today() ? "Bugun" : WDS[dt.getDay()]}</span><b>${dt.getDate()}</b></button>`; }).join("")}</div>
+    <h2 class="sec">Bo'sh vaqt</h2>
+    ${!sv ? `<p class="note">Avval xizmatni tanlang.</p>`
+      : S.slotsLoading ? `<div class="slots">${"<div class='skel' style='height:46px;border-radius:23px'></div>".repeat(8)}</div>`
+      : S.slots.length ? `<div class="slots">${S.slots.map(t => `<button class="slot ${t === S.sel.time ? "on" : ""}" data-a="selTime" data-v="${t}">${t}</button>`).join("")}</div>`
+      : empty("Bo'sh vaqt yo'q", "Bu kunga hamma vaqt band. Boshqa kunni tanlang.", "", I.clock)}
+    ${sv && S.sel.time ? `<div class="sumbar fade">${I.cal}<div class="grow"><b>${dLong(S.sel.date)}</b><small>${esc(sv.name)} · ${sv.duration} daq</small></div><b>${S.sel.time} – ${toHM(toMin(S.sel.time) + sv.duration)}</b></div>
+      <label class="field"><span>Izoh (ixtiyoriy)</span><input class="inp" data-f="note" value="${esc(S.sel.note)}" placeholder="Masalan: fade, yon tomoni 2 mm"></label>` : ""}
+  </div>`;
+}
+async function book(){
+  const m = S.master, sv = m && m.services.find(x => x.name === S.sel.service);
+  if (!sv || !S.sel.date || !S.sel.time) { haptic("warning"); toast("Xizmat, sana va vaqtni tanlang"); return; }
+  if (!loggedIn()) { S.au = null; render(); return; }
+  setMain("Yuborilmoqda…", null);
+  let j; try { j = await api("book", { masterId: m.id, service: sv.name, date: S.sel.date, time: S.sel.time, note: S.sel.note }); } catch(e){ j = { error: "Internet xatosi" }; }
+  if (!j.ok) { haptic("error"); toast(j.error || "Xato"); if (j.slots) { S.slots = j.slots; S.sel.time = null; } render(); return; }
+  haptic("success"); S.lastBooking = j.booking; S.my.unshift(j.booking); S.stack = []; S.screen = "done"; render(true);
+}
+function vDone(){
+  const b = S.lastBooking || {};
+  return `<div class="done fade"><div class="ring">${I.bigcheck}</div><h1>Bron yuborildi!</h1><p>Usta tasdiqlashi bilan Telegram botga xabar keladi. Vaqtidan oldin eslatib ham qo'yamiz.</p></div>
+  <div class="card p0">
+    <div class="row"><span class="k">Usta</span><span class="v">${esc(S.master ? S.master.name : "")}</span></div>
+    <div class="row"><span class="k">Xizmat</span><span class="v">${esc(b.service)}</span></div>
+    <div class="row"><span class="k">Sana</span><span class="v">${b.date ? dLong(b.date) : ""}</span></div>
+    <div class="row"><span class="k">Vaqt</span><span class="v">${b.time || ""}</span></div>
+    <div class="row tot"><span class="k">Narxi</span><span class="v">${money(b.price)}</span></div>
+  </div>
+  <button class="btn gray block" style="margin-top:12px" data-a="tab" data-v="home">Bosh sahifaga</button>`;
+}
+
+/* ================= BRONLARIM ================= */
+function bkCard(b){
+  const live = (b.status === "pending" || b.status === "confirmed") && (b.date > today() || (b.date === today() && toMin(b.time) > new Date().getHours()*60 + new Date().getMinutes()));
+  return `<div class="bk fade"><div class="bk-h"><div class="av t">${b.time}<small style="font-size:10px;font-weight:500">${parseYmd(b.date).getDate()} ${MON[parseYmd(b.date).getMonth()].slice(0,3)}</small></div>
+    <div class="grow"><b>${esc(b.master ? b.master.name : "Usta")}</b><small>${esc(b.service)} · ${fmt(b.price)} so'm</small><br><span class="${ST_CLS[b.status]||"tag"}">${ST_LABEL[b.status]||b.status}</span></div></div>
+    <div class="btns">${live ? `<button class="btn red sm" data-a="cancelBk" data-v="${b.id}">Bekor qilish</button>` : `<button class="btn soft sm" data-a="openMaster" data-v="${b.masterId}">Yana yozilish</button>`}
+      ${b.master && b.master.phone ? `<a class="btn gray sm" href="tel:+${String(b.master.phone).replace(/\D/g,"")}" aria-label="Qo'ng'iroq">${I.phone}</a>` : ""}</div></div>`;
+}
+function vBookings(){
+  const now = today(), up = S.my.filter(b => (b.status === "pending" || b.status === "confirmed") && b.date >= now).sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  const past = S.my.filter(b => up.indexOf(b) < 0);
+  return `<div class="hdr"><div class="grow"><small>Tashriflar</small><b style="font-size:22px">Bronlarim</b></div></div>
+  <h2 class="sec" style="margin-top:4px">Kelgusi <small>${up.length} ta</small></h2>
+  ${up.length ? `<div class="list">${up.map(bkCard).join("")}</div>` : empty(S.myLoaded ? "Kelgusi bron yo'q" : "Yuklanmoqda…", "Sevimli ustangizni tanlab, qulay vaqtga yoziling.", `<button class="btn acc" data-a="tab" data-v="home">Sartarosh topish</button>`, I.cal)}
+  ${past.length ? `<h2 class="sec">Tarix</h2><div class="list">${past.slice(0,30).map(bkCard).join("")}</div>` : ""}`;
+}
+
+/* ================= SEVIMLI ================= */
+function vFavs(){
+  return `<div class="hdr"><div class="grow"><small>Ustalaringiz</small><b style="font-size:22px">Sevimli</b></div></div>
+  ${S.favList.length ? `<div class="mlist">${S.favList.map(mcard).join("")}</div>` : empty("Sevimlilar bo'sh", "Usta sahifasidagi ♡ tugmasini bosing — u shu yerda turadi.", `<button class="btn acc" data-a="tab" data-v="home">Sartarosh topish</button>`, I.heart)}`;
+}
+
+/* ================= PROFIL ================= */
+function vProfile(){
+  const u = AUTH.user || {};
+  return `<div class="hdr"><div class="grow"><small>Hisob</small><b style="font-size:22px">Profil</b></div></div>
+  <div class="card"><div class="picked"><div class="av" style="width:58px;height:58px;font-size:21px;${avBg(u.name)}">${esc(initials(u.name))}</div><div><b style="font-size:18px">${esc(u.name)}</b><div class="muted">${showPhone(u.phone)}</div></div></div></div>
+  <div class="card" style="margin-top:10px"><label class="field"><span>Ism</span><input class="inp" data-f="pname" value="${esc(S.pname ?? u.name)}"></label>
+    <button class="btn soft block" style="margin-top:10px" data-a="saveName">Saqlash</button></div>
+  <h2 class="sec">Bildirishnomalar</h2>
+  <div class="card"><p class="note" style="margin:0">Bron tasdiqlanganda, rad etilganda va tashrifdan oldin (kechqurun va 2 soat qolganda) shu Telegram botga xabar keladi. Botni to'xtatib qo'ymang.</p></div>
+  <button class="btn red block" style="margin-top:16px" data-a="logout">Hisobdan chiqish</button>`;
+}
+
+/* ================= KIRISH / RO'YXATDAN O'TISH ================= */
+function vAuth(){
+  const A = S.au || (S.au = { mode: "login", phone:"", pass:"", pass2:"", name: IN_TG && tg.initDataUnsafe.user ? (tg.initDataUnsafe.user.first_name || "") : "", contact:null });
+  if (A.mode === "login") return `<div class="wel auth"><div class="wel-art">${ART_SVG}</div><div class="wel-body">
+    <div class="bars" style="position:static;margin-bottom:22px"><i class="on"></i><i></i><i></i></div>
+    <h1>Sartaroshingiz — bir teginishda</h1><p>Telefon raqamingiz va parolingiz bilan kiring.</p>
+    <label class="field"><span>Telefon raqam</span><input class="inp" data-f="au.phone" value="${esc(A.phone)}" type="tel" inputmode="tel" autocomplete="tel" placeholder="+998 90 123 45 67"></label>
+    <label class="field"><span>Parol</span><input class="inp" data-f="au.pass" value="${esc(A.pass)}" type="password" autocomplete="current-password" placeholder="••••••"></label>
+    <button class="slide" data-a="doLogin"><span class="sc">${I.scissors}</span><b>Kirish</b><span class="ar">›››</span></button>
+    <button class="lnk" data-a="authMode" data-v="reg">Hisobingiz yo'qmi? Ro'yxatdan o'tish</button>
+  </div></div>`;
+  return `<div class="wel auth"><div class="wel-art">${ART_SVG}</div><div class="wel-body">
+    <h1>Ro'yxatdan o'tish</h1><p>Yaqin sartaroshlarni toping va navbatsiz yoziling.</p>
+    <div class="step"><i>1</i> Telefon raqamingizni tasdiqlang</div>
+    ${A.contact ? `<div class="okph">${I.check} ${showPhone(A.contact)}</div>`
+      : `<button class="btn ghost" data-a="shareContact">📱 Raqamni Telegram orqali ulashish</button>${IN_TG ? "" : `<p class="note">Ro'yxatdan o'tish faqat Telegram bot ichida ishlaydi.</p>`}`}
+    <div class="step"><i>2</i> Ism va parol</div>
+    <label class="field"><span>Ismingiz</span><input class="inp" data-f="au.name" value="${esc(A.name)}" autocomplete="name" placeholder="Masalan: Ali"></label>
+    <label class="field"><span>Parol (kamida 6 belgi)</span><input class="inp" data-f="au.pass" value="${esc(A.pass)}" type="password" autocomplete="new-password"></label>
+    <label class="field"><span>Parolni takrorlang</span><input class="inp" data-f="au.pass2" value="${esc(A.pass2)}" type="password" autocomplete="new-password"></label>
+    <button class="slide" data-a="doRegister"><span class="sc">${I.scissors}</span><b>Ro'yxatdan o'tish</b><span class="ar">›››</span></button>
+    <button class="lnk" data-a="authMode" data-v="login">Hisobingiz bormi? Kirish</button>
+  </div></div>`;
+}
+async function afterLogin(){
+  loadMy(); loadFavs();
+  if (/^m_\w+$/.test(S.startParam)) { const id = S.startParam.slice(2); S.startParam = ""; openMaster(id); }
+}
+
+/* ================= MainButton ================= */
+let mainFn = null;
+if (IN_TG) tg.MainButton.onClick(() => { if (mainFn) { haptic(); mainFn(); } });
+document.getElementById("mbBtn").addEventListener("click", () => { if (mainFn) mainFn(); });
+function setMain(text, fn, active = true){
+  mainFn = text && active ? fn : null;
+  if (IN_TG) { try { if (!text) tg.MainButton.hide(); else tg.MainButton.setParams({ text, color: active ? "#F47B3C" : "#6B4A36", text_color:"#FFFFFF", is_visible:true, is_active: !!active }); } catch(e){} return; }
+  document.getElementById("mb").classList.toggle("show", !!text);
+  const b = document.getElementById("mbBtn"); b.textContent = text || ""; b.style.opacity = active ? 1 : .5;
+}
+function mainFor(){
+  if (S.screen === "master" && S.master) {
+    const sv = S.master.services.find(x => x.name === S.sel.service);
+    if (sv && S.sel.time) return [`Yozilish · ${money(sv.price)}`, book, true];
+    return [!sv ? "Xizmatni tanlang" : "Vaqtni tanlang", null, false];
+  }
+  if (S.screen === "done") return ["Bronlarimni ko'rish", () => tab("bookings"), true];
+  return [null, null];
+}
+
+/* ================= Render ================= */
+const VIEWS = { home:vHome, master:vMaster, done:vDone, bookings:vBookings, favs:vFavs, profile:vProfile };
+function render(toTop){
+  const app = document.getElementById("app"), ovl = document.getElementById("ovl"), nav = document.getElementById("navSlot");
+  if (!PLATFORM.API_URL) { app.innerHTML = empty("Sozlanmagan", "mijoz.html faylining boshidagi PLATFORM.API_URL ni to'ldiring."); return; }
+  const over = !loggedIn() ? vAuth() : "";
+  ovl.innerHTML = over;
+  if (over) { nav.innerHTML = ""; setMain(null); try { IN_TG && tg.BackButton.hide(); } catch(e){} return; }
+  const y = window.scrollY, strip = document.querySelector(".dstrip"), sx = strip ? strip.scrollLeft : 0;
+  app.innerHTML = `<div class="${toTop?"fade":""}">${VIEWS[S.screen]()}</div>`;
+  nav.innerHTML = tabbar();
+  window.scrollTo(0, toTop ? 0 : y);
+  const ns = document.querySelector(".dstrip"); if (ns && !toTop) ns.scrollLeft = sx;
+  if (IN_TG) { try { TABS.includes(S.screen) || S.screen === "done" ? tg.BackButton.hide() : tg.BackButton.show(); } catch(e){} }
+  const [t, f, a] = mainFor(); setMain(t, f, a);
+}
+
+/* ================= Hodisalar ================= */
+const ACT = {
+  back: goBack, tab,
+  openMaster: v => openMaster(v),
+  openUrl: v => openLink(v),
+  locate: () => { toast("Joylashuv aniqlanmoqda…"); getLocation(p => { if (!p) return; S.loc = p; LS.set("mijoz_loc", p); haptic("success"); loadList(); loadFavs(); }); },
+  fav: async v => { if (!loggedIn()) return; const on = !S.favIds.has(v); on ? S.favIds.add(v) : S.favIds.delete(v); haptic(on ? "success" : ""); render();
+    try { await api("fav", { masterId: v, on }); toast(on ? "Sevimlilarga qo'shildi" : "Sevimlilardan olindi"); loadFavs(); } catch(e){ toast("Internet xatosi"); } },
+  selSvc: v => { S.sel.service = v; S.sel.time = null; S.slotsKey = ""; render(); loadSlots(); },
+  selDate: v => { S.sel.date = v; S.sel.time = null; render(); loadSlots(); },
+  selTime: v => { S.sel.time = v; render(); },
+  shareMaster: () => { const m = S.master; const link = BOT_NAME() ? `https://t.me/${BOT_NAME()}?startapp=m_${m.id}` : location.href.split("?")[0] + "?m=" + m.id;
+    openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent("💈 " + m.name + " — onlayn yozilish")}`); },
+  cancelBk: async v => { if (!(await ask("Bron bekor qilinsinmi? Ustaga xabar boradi."))) return;
+    const j = await api("cancel_booking", { id: v }).catch(() => ({ error: "Internet xatosi" })); if (!j.ok) { toast(j.error); return; } haptic("success"); toast("Bekor qilindi"); loadMy(); },
+  saveName: async () => { const n = String(S.pname ?? "").trim(); if (n.length < 2) { toast("Ism juda qisqa"); return; }
+    const j = await api("set_name", { name: n }); if (j.ok) { AUTH.user = j.user; saveAuth(); S.pname = null; haptic("success"); toast("Saqlandi"); render(); } else toast(j.error); },
+  logout: async () => { if (!(await ask("Hisobdan chiqilsinmi?"))) return; try { await api("logout"); } catch(e){} AUTH = {}; saveAuth(); S.my = []; S.favIds = new Set(); S.favList = []; S.au = null; render(true); },
+  beMaster: () => openLink(`https://t.me/${PLATFORM.USTA_BOT}`),
+  authMode: v => { S.au.mode = v; render(true); },
+  shareContact: async () => {
+    if (!IN_TG) { toast("Ilovani Telegram bot ichida oching"); return; }
+    const check = async () => { const j = await api("contact_status"); if (j.ok && j.phone) { S.au.contact = j.phone;
+      if (j.registered) { S.au.mode = "login"; S.au.phone = showPhone(j.phone); toast("Bu raqam ro'yxatdan o'tgan — parolingiz bilan kiring"); } else haptic("success");
+      render(); return true; } return false; };
+    if (await check()) return;
+    const poll = async () => { toast("Tekshirilmoqda…"); for (let i = 0; i < 10; i++) { await sleep(1500); if (await check()) return; } toast("Raqam kelmadi. Botda «📱 Raqamni ulashish» tugmasini bosing"); };
+    try { tg.requestContact(ok => { if (ok) poll(); else toast("Raqam ulashilmadi"); }); } catch(e){ toast("Botga qaytib «📱 Raqamni ulashish» tugmasini bosing"); }
+  },
+  doRegister: async () => { const A = S.au;
+    if (!A.contact) { haptic("error"); toast("Avval raqamingizni ulashing"); return; }
+    if (String(A.name).trim().length < 2) { haptic("error"); toast("Ismingizni kiriting"); return; }
+    if (String(A.pass).length < 6) { haptic("error"); toast("Parol kamida 6 belgi bo'lsin"); return; }
+    if (A.pass !== A.pass2) { haptic("error"); toast("Parollar bir xil emas"); return; }
+    toast("Yuborilmoqda…");
+    const j = await api("register", { name: A.name.trim(), password: A.pass }).catch(() => ({ error: "Internet xatosi" }));
+    if (!j.ok) { haptic("error"); toast(j.error || "Xato"); return; }
+    // Ro'yxatdan o'tgach — kirish oynasiga: telefon raqam va parol bilan kiradi
+    haptic("success"); S.au = { mode: "login", phone: showPhone(j.user.phone), pass: "", pass2: "", name: A.name, contact: A.contact };
+    toast("Ro'yxatdan o'tdingiz! Endi parolingiz bilan kiring"); render(true); },
+  doLogin: async () => { const A = S.au, d = String(A.phone).replace(/\D/g,"");
+    if (d.length < 9) { haptic("error"); toast("Telefon raqamni to'liq kiriting"); return; }
+    if (!A.pass) { haptic("error"); toast("Parolni kiriting"); return; }
+    toast("Tekshirilmoqda…");
+    const j = await api("login", { phone: d, password: A.pass, app: "mijoz" }).catch(() => ({ error: "Internet xatosi" }));
+    if (!j.ok) { haptic("error"); toast(j.error || "Xato"); return; }
+    AUTH = { token: j.token, user: j.user }; saveAuth(); S.au = null; haptic("success"); toast(`Xush kelibsiz, ${j.user.name}!`);
+    S.screen = "home"; S.stack = []; render(true); afterLogin(); if (S.master && S.sel.time) book(); }
+};
+const BOT_NAME = () => PLATFORM.MIJOZ_BOT || "";
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-a]"); if (!el || el.disabled) return;
+  const fn = ACT[el.dataset.a]; if (!fn) return;
+  if (el.tagName !== "A") e.preventDefault();
+  haptic(); fn(el.dataset.v, el);
+});
+let qTimer = null;
+document.addEventListener("input", e => {
+  const el = e.target.closest("[data-f]"); if (!el) return;
+  const p = el.dataset.f.split("."), v = el.value;
+  if (p[0] === "au") { S.au[p[1]] = v; return; }
+  if (p[0] === "q") { S.q = v; clearTimeout(qTimer); qTimer = setTimeout(loadList, 450); return; }
+  if (p[0] === "note") { S.sel.note = v; return; }
+  if (p[0] === "pname") { S.pname = v; return; }
+});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && loggedIn()) loadMy(); });
+
+render(true);
+if (PLATFORM.API_URL) { loadList(); if (loggedIn()) { afterLogin(); api("me").then(j => { if (j.ok) { AUTH.user = j.user; saveAuth(); } }).catch(() => {}); } }
+</script>
+</body>
+</html>
