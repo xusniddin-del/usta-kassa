@@ -410,8 +410,8 @@ async function api(action, data){
 const SYNC_KEY = "usta_sync_v1";
 let SYNC = (() => { try { return JSON.parse(localStorage.getItem(SYNC_KEY)) || {}; } catch(e){ return {}; } })();
 const saveSync = () => { try { localStorage.setItem(SYNC_KEY, JSON.stringify(SYNC)); } catch(e){} };
-const platSync = () => loggedIn() && !(SYNC.url && SYNC.key);   // kirgan bo'lsa — kassa platformada saqlanadi
-const syncOn = () => !!(SYNC.url && SYNC.key) || platSync();
+const platSync = () => loggedIn();   // kirgan usta — kassa avtomatik serverda saqlanadi, hech narsa sozlanmaydi
+const syncOn = () => platSync() || (!PLAT() && !!(SYNC.url && SYNC.key));   // shaxsiy Google Sheets faqat platformasiz eski versiyada
 let syncTimer = null, syncBusy = false;
 const COLLS = ["clients","visits","payments","expenses","appts"];
 function syncPayload(){ const st = Object.assign({}, DB.settings); delete st.photo; delete st.mphoto; delete st.pin;
@@ -634,7 +634,7 @@ function vHome(){
   let banners = "";
   if (loggedIn() && S.on.pending) banners += `<button class="banner" data-a="tabTo" data-v="online">${I.bell}<div class="grow"><b>${S.on.pending} ta yangi onlayn bron</b><span>Tasdiqlang yoki rad eting</span></div>${I.right}</button>`;
   if (PLAT() && !loggedIn() && !ST().authBannerOff) banners += `<div class="banner">${I.users}<div class="grow"><b>Mijozlar sizni botda topsin</b><span>Ro'yxatdan o'ting va onlayn bron qabul qiling</span></div><button class="btn acc sm" data-a="openAuth" data-v="reg">O'tish</button><button class="ib" style="width:32px;height:32px;background:var(--fill)" data-a="authBannerOff" aria-label="Yopish">${I.x}</button></div>`;
-  if (syncOn() && SYNC.error) banners += `<button class="banner" data-a="tabTo" data-v="settings">${I.x}<div class="grow"><b>Google Sheets bilan aloqa yo'q</b><span>${esc(SYNC.error)} — ma'lumotlar telefonda saqlanmoqda</span></div>${I.right}</button>`;
+  if (syncOn() && SYNC.error) banners += `<button class="banner" data-a="tabTo" data-v="settings">${I.x}<div class="grow"><b>${PLAT() ? "Server bilan aloqa yo'q" : "Google Sheets bilan aloqa yo'q"}</b><span>${esc(SYNC.error)} — ma'lumotlar telefonda saqlanmoqda</span></div>${I.right}</button>`;
   if (isToday && (dom >= dim-1 || dom === 1)) banners += `<button class="banner" data-a="openReport" data-v="${dom===1 ? addMonths(today().slice(0,7),-1) : today().slice(0,7)}">${I.chart}<div class="grow"><b>${dom===1 ? "O'tgan oy hisoboti tayyor" : "Oy tugayapti"}</b><span>Oylik hisobotni ko'ring va saqlab qo'ying</span></div>${I.right}</button>`;
   return `${topBar(ST().master || ST().shop, isToday ? "Xush kelibsiz 👋" : dLong(d))}
   <div class="week">${strip.map(x => { const dt = parseYmd(x);
@@ -1128,9 +1128,11 @@ function vSettings(){
     <div class="btns" style="margin-top:10px"><label class="btn soft sm">Rasm tanlash<input type="file" accept="image/*" id="photoMaster" hidden></label>${ST().mphoto ? `<button class="btn gray sm" data-a="rmPhoto" data-v="mphoto">O'chirish</button>` : ""}</div>
     <div class="field" style="margin-top:16px"><span>Mavzu</span><div class="seg"><button class="${ST().theme!=="light"?"on":""}" data-a="setTheme" data-v="dark">Jigarrang</button><button class="${ST().theme==="light"?"on":""}" data-a="setTheme" data-v="light">Yorug'</button></div></div>
   </div>
-  ${platSync() ? `<h2 class="sec">Saqlash</h2><div class="card"><div class="row" style="border:0"><span class="k">Ma'lumotlar serverda</span><span class="v" id="syncStatus">${syncStatusHtml()}</span></div><p class="note">Boshqa telefondan raqam va parolingiz bilan kirsangiz, hammasi tiklanadi.</p></div>` : ""}
-  <h2 class="sec" ${platSync() ? 'style="display:none"' : ""}>Google Sheets</h2>
-  <div class="card" ${platSync() ? 'style="display:none"' : ""}>
+  ${PLAT() ? `<h2 class="sec">Saqlash</h2><div class="card">${loggedIn()
+      ? `<div class="row" style="border:0"><span class="k">Ma'lumotlar serverda</span><span class="v" id="syncStatus">${syncStatusHtml()}</span></div><p class="note">Hech narsa sozlash shart emas. Boshqa telefondan raqam va parolingiz bilan kirsangiz, hammasi tiklanadi.</p>`
+      : `<p class="note" style="margin:0 0 10px">Hozir ma'lumotlar faqat shu telefonda. Ro'yxatdan o'ting — hammasi avtomatik serverda saqlanadi.</p><button class="btn acc block" data-a="openAuth" data-v="reg">Ro'yxatdan o'tish</button>`}</div>` : ""}
+  <h2 class="sec" ${PLAT() ? 'style="display:none"' : ""}>Google Sheets</h2>
+  <div class="card" ${PLAT() ? 'style="display:none"' : ""}>
     ${(() => { const Y = S.Y || (S.Y = { url: SYNC.url || "", key: SYNC.key || "" });
       return `<label class="field"><span>Veb-ilova havolasi (/exec)</span><input class="inp" data-f="Y.url" value="${esc(Y.url)}" placeholder="https://script.google.com/macros/s/…/exec" autocapitalize="off" autocomplete="off" spellcheck="false"></label>
       <label class="field"><span>Kalit</span><input class="inp" data-f="Y.key" value="${esc(Y.key)}" placeholder="Apps Script'dagi KALIT" autocapitalize="off" autocomplete="off" spellcheck="false"></label>`; })()}
@@ -1240,6 +1242,10 @@ async function onAuth(j){
   if (!DB.settings.master) DB.settings.master = j.user.name;
   if (j.user.shop && (!DB.settings.shop || DB.settings.shop === "Sartaroshxona")) DB.settings.shop = j.user.shop.name;
   const fresh = !DB.visits.length && !DB.clients.length;
+  if (SYNC.url || SYNC.key) {   // eski shaxsiy Google Sheets ulanishi — endi kerak emas
+    SYNC = {}; saveSync();
+    if (IN_TG && tg.CloudStorage) { try { tg.CloudStorage.setItem("usta_sync", ""); } catch(e){} }
+  }
   DB.settings.onboarded = true;
   if (fresh) { DB.updatedAt = 0; saveLocal(); } else { SYNC.pending = true; saveSync(); saveLocal(); }
   S.au = null; S.showAuth = false; S.screen = "home"; S.stack = [];
@@ -1577,7 +1583,7 @@ if (loggedIn()) {
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") refreshOnline(); });
 }
 if (syncOn()) pullSync(true);
-else cloudLoad(c => { if (c && c.url && c.key) { SYNC = { url: c.url, key: c.key }; saveSync(); pullSync(); } });
+else if (!PLAT()) cloudLoad(c => { if (c && c.url && c.key) { SYNC = { url: c.url, key: c.key }; saveSync(); pullSync(); } });
 </script>
 </body>
 </html>
