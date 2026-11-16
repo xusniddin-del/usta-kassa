@@ -475,7 +475,10 @@ function syncStatusHtml(){
   if (SYNC.pending) return `<span class="muted">Yuborilmoqda…</span>`;
   return `<span class="pos">✓ Saqlangan${SYNC.last ? " · " + new Date(SYNC.last).toTimeString().slice(0,5) : ""}</span>`;
 }
-function refreshSyncUi(){ const el = document.getElementById("syncStatus"); if (el) el.innerHTML = syncStatusHtml(); }
+function refreshSyncUi(){ const el = document.getElementById("syncStatus"); if (el) el.innerHTML = syncStatusHtml();
+  // Bosh sahifadagi "aloqa yo'q" banneri ham darhol yangilansin
+  const hasBanner = !!document.querySelector('[data-a="tabTo"][data-v="settings"].banner');
+  if (S.screen === "home" && hasBanner !== !!(syncOn() && SYNC.error) && !(document.activeElement && document.activeElement.matches("input,textarea"))) render(); }
 window.addEventListener("online", () => { if (syncOn()) pullSync(true); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && syncOn()) pullSync(true); });
 const ST = () => DB.settings;
